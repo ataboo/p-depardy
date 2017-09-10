@@ -6,13 +6,17 @@ module.exports = function(gameLoop) {
             console.log('picking entry.');
 
             this.picker = this.gameLoop.nextPicker();
+
+            console.log('picker is: '+this.picker.id);
+
             this.pickSpot = [0, 0];
-            this.size = [ Object.keys(this.gameLoop.categories).length, this.gameLoop.categories[Object.keys(this.gameLoop.categories)[0]].length];
+            this.size = [ this.gameLoop.gridSquares.length, this.gameLoop.gridSquares[0].length];
 
             this.gameLoop.emitAll('picking', this.picker);
         }
 
         onContestant(event, user, data) {
+            console.log('heard from : '+user.id);
             if (user.id !== this.picker.id) {
                 return;
             }

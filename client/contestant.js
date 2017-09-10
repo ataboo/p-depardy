@@ -1,5 +1,4 @@
-let util = require('util');
-const $ = require('jquery');
+window.$ = require('jquery');
 let io = require('socket.io-client');
 
 $(document).ready(function () {
@@ -8,6 +7,7 @@ $(document).ready(function () {
 
 function initSocket() {
     let socket = io();
+    let checkingUserId;
 
     $('.socket-button').on('click', function() {
         let event = $(this).data('event');
@@ -16,6 +16,10 @@ function initSocket() {
         console.log('emitting: '+event);
 
         socket.emit(event, data);
+    });
+
+    socket.on('buzz-accepted', function(data) {
+        $('.answer-button').data('event-data', JSON.stringify({ user_id: data.user_id }));
     });
 
     socket.on('outgoing', (content) => {

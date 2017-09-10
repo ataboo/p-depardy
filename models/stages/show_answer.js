@@ -5,7 +5,7 @@ module.exports = function(gameLoop) {
         entry() {
             console.log('Showing Answer.');
 
-            this.gameLoop.emitAll('show-answer', this.gameLoop.activeQuestion);
+            this.gameLoop.emitAll('show-answer', this.gameLoop.currentGridSquare());
         }
 
         onHost(event, user, data) {

@@ -2,10 +2,14 @@
 
 <h1>Logged in as Host <%= user.name %></h1>
 <button class="socket-button" data-event="start-pick">Start Pick</button>
+<button class="socket-button" data-event="start-buzz">Start Buzz</button>
+<button class="socket-button answer-button" data-event="right-answer">Right</button>
+<button class="socket-button answer-button" data-event="wrong-answer">Wrong</button>
+<button class="socket-button" data-event="reset">Reset</button>
 
 <a href="/logout">Logout</a>
 
 <div id="message-box">Nothing</div>
 
-<script src="app.js"></script>
+<script src="host.bundle.js"></script>
 <% include partials/footer %>

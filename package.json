@@ -5,14 +5,14 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch:client": "watchify client/main.js -o public/app.js -v",
+    "build": "node_modules/.bin/webpack",
+    "watch:client": "node_modules/.bin/webpack --watch",
     "watch:server": "nodemon server.js",
-    "build": "browserify client/main.js -o public/app.js",
     "start": "concurrently --kill-others \"npm run watch:client\" \"npm run watch:server\""
   },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
-    "body-parser": "*",
+    "body-parser": "^1.18.0",
     "bufferutil": "^3.0.2",
     "connect-flash": "^0.1.1",
     "connect-redis": "^3.3.0",
@@ -27,7 +27,6 @@
     "jquery": "^3.2.1",
     "passport": "^0.3.2",
     "passport-google-oauth": "^1.0.0",
-    "passport-local": "^1.0.0",
     "passport.socketio": "^3.7.0",
     "socket.io": "^2.0.3",
     "socket.io-client": "^2.0.3",
@@ -42,8 +41,8 @@
   "author": "Alex Raboud",
   "license": "ISC",
   "devDependencies": {
-    "browserify": "^14.4.0",
     "concurrently": "^3.5.0",
-    "watchify": "^3.9.0"
+    "path": "^0.12.7",
+    "webpack": "^3.5.6"
   }
 }

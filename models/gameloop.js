@@ -1,6 +1,7 @@
 module.exports = function(redisClient, socketIo) {
     let GridSquare = require('./gridsquare')();
     let Stages;
+    let util = require('util');
 
     const CATEGORIES = [
         'First One',
@@ -23,12 +24,20 @@ module.exports = function(redisClient, socketIo) {
         Stages = require('./stages/stages')(this);
         if (serialized) {
             this.stageName = serialized.stageName;
-            this.categories = serialized.categories;
+            this.gridSquares = serialized.gridSquares;
             this.contestants = serialized.contestants;
             this.spectators = serialized.spectators;
             this.host = serialized.host;
             this.activeQuestion = serialized.activeQuestion;
+            this.checkingContestant = serialized.checkingContestant;
             this.lastPicker = serialized.lastPicker;
+            for(let x of Object.keys(serialized.gridSquares)) {
+
+                for(let y of Object.keys(serialized.gridSquares[x])) {
+                    this.gridSquares[x][y] = new GridSquare(serialized.gridSquares[x][y]);
+                }
+            }
+            
             this.currentStage().entry();
         }
     }
@@ -44,7 +53,8 @@ module.exports = function(redisClient, socketIo) {
                 })
             } else {
                 console.log('Loading existing game...');
-                done(null, new GameLoop(JSON.parse(res)));
+                let gameLoop = new GameLoop(JSON.parse(res));
+                done(null, gameLoop);
             }
         });
     };
@@ -92,35 +102,37 @@ module.exports = function(redisClient, socketIo) {
 
         return JSON.stringify({
             stageName: gameLoop.stageName,
-            categories: gameLoop.categories,
+            gridSquares: gameLoop.gridSquares,
             contestants: gameLoop.contestants,
             spectators: gameLoop.spectators,
             host: gameLoop.host,
             activeQuestion: gameLoop.activeQuestion,
+            checkingContestant: gameLoop.checkingContestant,
             lastPicker: gameLoop.lastPicker
         });
     };
 
     GameLoop.prototype.init = function init(done) {
-        this.categories = {};
+        this.gridSquares = [];
         this.contestants = {};
         this.spectators = {};
 
         //load config
 
         //init grid
-        for (let cat = 0; cat < CATEGORIES.length; cat++) {
+        for (let x = 0; x < CATEGORIES.length; x++) {
             let values = [];
-            for (let val = 0; val < VALUES.length; val++) {
+            for (let y = 0; y < VALUES.length; y++) {
                 let attrs = {
-                    question: "Question for " + CATEGORIES[cat] + " " + VALUES[val],
-                    answer: "Answer for " + CATEGORIES[cat] + " " + VALUES[val],
-                    value: VALUES[val]
+                    question: "Question for " + CATEGORIES[x] + " " + VALUES[y],
+                    answer: "Answer for " + CATEGORIES[x] + " " + VALUES[y],
+                    value: VALUES[y],
+                    category: CATEGORIES[x]
                 };
-                values[val] = new GridSquare(attrs);
+                values[y] = new GridSquare(attrs);
             }
 
-            this.categories[CATEGORIES[cat]] = values;
+            this.gridSquares[x] = values;
         }
 
         this.setStage('pre_round');
@@ -151,8 +163,8 @@ module.exports = function(redisClient, socketIo) {
     };
 
     GameLoop.prototype.contestantCheckIn = function (user, done) {
-        if (!this.categories) {
-            done(false, 'Game not Hosted Yet.');
+        if (!this.gridSquares) {
+            done(false, 'Game not Started yet.');
             return;
         }
 
@@ -169,7 +181,7 @@ module.exports = function(redisClient, socketIo) {
     };
 
     GameLoop.prototype.spectatorCheckIn = function (user, done) {
-        if (!this.categories) {
+        if (!this.gridSquares) {
             done(false, 'Game not Hosted Yet.');
             return;
         }
@@ -278,23 +290,32 @@ module.exports = function(redisClient, socketIo) {
     };
 
     GameLoop.prototype.nextPicker = function() {
-        if(this.lastPicker && this.contestants[lastPicker]) {
-            return this.contestants[lastPicker];
+        if(this.lastPicker && this.contestants[this.lastPicker]) {
+            return this.contestants[this.lastPicker];
         }
 
         //TODO: make random.
         return Object.values(this.contestants)[0];
     };
 
+    GameLoop.prototype.currentGridSquare = function() {
+        if (!this.activeQuestion) {
+            console.log('no current grid.');
+            return undefined;
+        }
+
+        console.log('Active Question is: '+this.activeQuestion);
+        console.log('Current Grid is: '+util.inspect(this.gridSquares[this.activeQuestion[0]][this.activeQuestion[1]]));
+
+        return this.gridSquares[this.activeQuestion[0]][this.activeQuestion[1]];
+    };
+
     GameLoop.prototype.setQuestion = function(gridPos) {
+        this.activeQuestion = gridPos;
+
         if (gridPos) {
-            let question = Object.values(gridPos[0])[gridPos[1]];
-            if (!question.blank) {
-                this.activeQuestion = question;
-                return true;
-            }
-        } else {
-            this.activeQuestion = undefined;
+            let gridSquare = this.gridSquares[gridPos[0]][gridPos[1]];
+            return !gridSquare.blank;
         }
 
         return false;

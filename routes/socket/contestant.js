@@ -2,7 +2,7 @@ module.exports = function(socket, gameLoop) {
     let events = [
         'move-pick',
         'lock-pick',
-        'buzz'
+        'buzzed'
     ];
 
     socket.request.user.socketId = socket.id;

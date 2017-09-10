@@ -7,9 +7,13 @@ module.exports = function(gameLoop) {
         }
 
         onHost(event, user, data) {
+            console.log('Checking got daters: '+data);
+
             if (event === 'right-answer') {
-                let contestant = this.gameLoop.contestants[user.id];
-                contestant.score += this.gameLoop.activeQuestion.value;
+                let contestant = this.gameLoop.contestants[this.gameLoop.checkingContestant];
+                console.log('contestant: '+contestant);
+
+                contestant.score += this.gameLoop.currentGridSquare().value;
                 this.gameLoop.lastPicker = contestant.id;
                 this.gameLoop.emitAll('update-users', this.gameLoop.contestants);
                 this.gameLoop.setStage('show_answer');
@@ -17,17 +21,17 @@ module.exports = function(gameLoop) {
             }
 
             if (event === 'wrong-answer') {
-                this.gameLoop.emitAll('wrong-answer', user.id);
-
-                let unbuzzed = this.gameLoop.contestants.filter(function(user) {
+                let unbuzzed = Object.values(this.gameLoop.contestants).filter(function(user) {
                     return !user.buzzed
                 });
+
+                console.log('Unbuzzed: '+unbuzzed);
 
                 if (unbuzzed.length) {
                     this.gameLoop.emit('start-buzzing', unbuzzed, '');
                     this.gameLoop.setStage('buzzing');
                 } else {
-                    this.setStage('show_answer');
+                    this.gameLoop.setStage('show_answer');
                 }
             }
         }

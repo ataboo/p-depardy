@@ -1,7 +1,8 @@
 module.exports = function() {
     function GridSquare (attrs) {
-        this.blank = false;
+        this.blank = attrs.blank;
         this.question = attrs.question;
+        this.category = attrs.category;
         this.value = attrs.value;
         this.answer = attrs.answer;
         this.double = attrs.double;
