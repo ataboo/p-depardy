@@ -1,9 +1,15 @@
 <% include partials/header %>
 
-<h1>Logged in as Contestant <%= username %></h1>
-<button id="bootan">push me bitch</button>
+<h1>Logged in as Contestant <%= user.name %></h1>
+<button class="socket-button" data-event="move-pick" data-event-data="up">up</button>
+<button class="socket-button" data-event="move-pick" data-event-data="right">right</button>
+<button class="socket-button" data-event="move-pick" data-event-data="down">down</button>
+<button class="socket-button" data-event="move-pick" data-event-data="left">left</button>
+<button class="socket-button" data-event="lock-pick">lock</button>
 
 <a href="/logout">Logout</a>
+
+<div id="message-box">Nothing</div>
 
 <script src="app.js"></script>
 <% include partials/footer %>

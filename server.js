@@ -12,7 +12,7 @@ let passportSocketIo = require('passport.socketio');
 let flash = require('connect-flash');
 let RedisStore = require('connect-redis')(session);
 let redis = require('redis');
-
+let saveGameLoop = require('./middleware/save-gameloop');
 // Server port.
 const PORT = 3000;
 
@@ -41,14 +41,14 @@ app.use(session({
 
 app.use(cookieParser());
 app.use(flash());
-
 app.use(passport.initialize());
+
 app.use(passport.session());
 // Load the passport strategy config.
 require('./config/passport')(passport, redisClient);
-
 // Init SocketIO and passport middleware.
 let io = SocketIO(server);
+
 io.use(passportSocketIo.authorize({
 	key: 'connect.sid',
 	secret: process.env.REDIS_SECRET,
@@ -56,6 +56,8 @@ io.use(passportSocketIo.authorize({
 	passport: passport,
 	cookieParser: cookieParser
 }));
+let gameLoop = require('./middleware/load-gameloop')(redisClient, io);
+app.use(gameLoop.Middleware);
 
 // Public directory.
 app.use(express.static(path.join(__dirname, '/public')));
@@ -63,6 +65,7 @@ app.use(express.static(path.join(__dirname, '/public')));
 // Body Parser Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+// app.use(saveGameLoop());
 
 // Set ejs view engine.
 app.set('view engine', 'ejs');
@@ -74,7 +77,7 @@ app.set('views', path.join(__dirname, 'views'));
 require('./routes/web')(app, passport);
 
 // Socket Events
-require('./routes/sockets')(io);
+require('./routes/sockets')(io, gameLoop.getLoop);
 
 // Start Server
 server.listen(PORT, function() {

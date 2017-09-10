@@ -14,16 +14,13 @@ module.exports = function (redisClient) {
             if (attributes) {
                 let user = new User(attributes);
 
-                user.isAllowed((success) => {
-                    if (!success) {
+                user.loadPermissions((user) => {
+                    if (!user.permissions.allowed) {
                         user.delete(() => {
-                            done(false, null, {message: 'User Not Whitelisted Anymore.'});
-                        })
-                    } else {
-                        user.isHost((isHost) => {
-                            user.host = isHost;
-                            done(null, user);
+                            done(false, null, {message: 'User No Longer Whitelisted.'});
                         });
+                    } else {
+                        done(null, user);
                     }
                 });
             } else {
@@ -32,14 +29,16 @@ module.exports = function (redisClient) {
         });
     };
 
+    User.newWithPermissions = function(profile, done) {
+        let user = new User(profile);
+
+        user.loadPermissions(done);
+    };
+
     User.prototype.save = function (done) {
         let user = this;
-        this.isHost(function (success) {
-            user.host = success;
-
-            redisClient.hset(USERS_NAMESPACE, user.id, user.toString(), function (err, res) {
-                done(null, user);
-            });
+        redisClient.hset(USERS_NAMESPACE, user.id, user.toString(), function (err, res) {
+            done(null, user);
         });
     };
 
@@ -49,17 +48,11 @@ module.exports = function (redisClient) {
         })
     };
 
-    User.prototype.isAllowed = function (done) {
-        User.whiteList.isAllowed(this.email, done);
-    };
-
-    User.prototype.isHost = function (done) {
-
-        User.whiteList.isHost(this.email, done);
-    };
-
-    User.prototype.isClient = function (done) {
-        User.whiteList.isClient(this.email, done);
+    User.prototype.loadPermissions = function(done) {
+        User.whiteList.getPermissions(this.email, (permissions) => {
+            this.permissions = permissions;
+            done(this);
+        });
     };
 
     User.prototype.fromProfile = function (profile) {
@@ -71,25 +64,6 @@ module.exports = function (redisClient) {
             this.email = profile.email;
         }
         this.token = profile.token;
-    };
-
-    User.prototype.fromString = function (rawJson) {
-        if (!rawJson) {
-            return false;
-        }
-
-        try {
-            var attributes = JSON.parse(rawJson);
-        } catch (e) {
-            return false;
-        }
-
-        this.id = attributes.id;
-        this.name = attributes.name;
-        this.email = attributes.email;
-        this.token = attributes.token;
-
-        return self;
     };
 
     User.prototype.toString = function () {

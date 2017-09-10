@@ -1,6 +1,7 @@
 module.exports = function (app, passport) {
     let isLoggedIn = require('../middleware/isLoggedIn');
-    let isHost = require('../middleware/isHost');
+    let canHost = require('../middleware/canHost');
+    let canContestant = require('../middleware/canClient');
 
     app.get('/', function (req, res) {
         res.render('index', {
@@ -17,7 +18,7 @@ module.exports = function (app, passport) {
 
     app.get('/auth/google/return',
         passport.authenticate('google', {
-            successRedirect: '/login_redirect',
+            successRedirect: '/logged_in',
             failureRedirect: '/',
             failureFlash: true
         })
@@ -29,20 +30,23 @@ module.exports = function (app, passport) {
         res.redirect('/');
     });
 
-    app.get('/login_redirect', isLoggedIn, function (req, res) {
-        if (req.user.host) {
-            res.redirect('/host')
-        } else {
-            res.redirect('/contestant');
-        }
+    app.get('/logged_in', isLoggedIn, function(req, res) {
+        res.render('logged_in', {
+            user: req.user,
+            game: {}
+        });
     });
 
-    app.get('/contestant', isLoggedIn, function (req, res) {
-        res.render('contestant', {username: req.user.name});
+    app.get('/spectator', isLoggedIn, function(req, res) {
+        res.render('spectator', {user: req.user});
     });
 
-    app.get('/host', isLoggedIn, isHost, function (req, res) {
-        res.render('host', {username: req.user.name});
+    app.get('/contestant', isLoggedIn, canContestant, function (req, res) {
+        res.render('contestant', {user: req.user});
+    });
+
+    app.get('/host', isLoggedIn, canHost, function (req, res) {
+        res.render('host', {user: req.user});
     });
 
     app.get('/not_auth', function (req, res) {

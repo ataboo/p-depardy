@@ -1,17 +1,17 @@
 {
   "clients": {
-    "ccids": [
-      "araboud"
+    "domains": [
+      "ualberta.ca"
     ],
     "emails": [
       "doubar2001@gmail.com"
     ]
   },
   "hosts": {
-    "ccids": [
+    "domains": [
     ],
     "emails": [
-
+      "araboud@ualberta.ca"
     ]
   }
 }

@@ -16,10 +16,10 @@ module.exports = function () {
     }
 
     function _hasEmail(email, emailMap) {
-        let hasCCID = emailMap.ccids.some((element) => {
-            return element + '@ualberta.ca' === email;
+        let hasCCID = emailMap.domains.some((element) => {
+            return element === email.split('@')[1];
         });
-        let hasFullEmail = emailMap.ccids.some((element) => {
+        let hasFullEmail = emailMap.emails.some((element) => {
             return element === email;
         });
 
@@ -27,19 +27,17 @@ module.exports = function () {
     }
 
     return {
-        isClient: function (email, done) {
+        getPermissions: function (email, done) {
             _getWhiteList((whiteList) => {
-                done(_hasEmail(email, whiteList.clients));
-            });
-        },
-        isHost: function (email, done) {
-            _getWhiteList((whiteList) => {
-                done(_hasEmail(email, whiteList.hosts));
-            });
-        },
-        isAllowed: function (email, done) {
-            _getWhiteList((whiteList) => {
-                done(_hasEmail(email, whiteList.hosts) || _hasEmail(email, whiteList.clients));
+                let host = _hasEmail(email, whiteList.hosts);
+                let client = _hasEmail(email, whiteList.clients);
+                let allowed = host || client;
+
+                done({
+                    host: host,
+                    client: client,
+                    allowed: allowed
+                });
             })
         }
     }

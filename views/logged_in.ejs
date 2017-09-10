@@ -1,0 +1,17 @@
+<% include partials/header %>
+
+<h1>Logged in as <%= user.name %></h1>
+
+<% if(user.permissions.host){ %>
+    <a href="/host">Host</a>
+<% } %>
+
+<% if(user.permissions.client){ %>
+    <a href="/contestant">Play</a>
+<% } %>
+
+<a href="/spectator">Spectate</a>
+
+<a href="/logout">Logout</a>
+
+<% include partials/footer %>

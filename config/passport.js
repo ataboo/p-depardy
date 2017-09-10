@@ -28,13 +28,11 @@ module.exports = function (passport, redisClient) {
                     if (user) {
                         done(null, user);
                     } else {
-                        let user = new User(profile);
-
-                        user.isAllowed((success) => {
-                            if (success) {
+                        User.newWithPermissions(profile, (user) => {
+                            if (user.permissions.allowed) {
                                 user.save(done);
                             } else {
-                                done(null, false, {message: 'User not Whitelisted'});
+                                done(null, false, {message: 'User not Whitelisted.'});
                             }
                         });
                     }
