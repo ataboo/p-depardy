@@ -37,7 +37,7 @@ module.exports = function(redisClient, socketIo) {
                     this.gridSquares[x][y] = new GridSquare(serialized.gridSquares[x][y]);
                 }
             }
-            
+
             this.currentStage().entry();
         }
     }
