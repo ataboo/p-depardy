@@ -1,15 +1,13 @@
 module.exports = function(redisClient, socketIo) {
-    let GameLoop = require('../models/gameloop')(redisClient, socketIo);
-    let gameLoop;
+  let global = require('./global');
+    let GameLoop = require('../models/gameloop')(socketIo);
 
     function _getLoop(done) {
-        if (!gameLoop) {
-            GameLoop.load((err, loop) => {
-                gameLoop = loop;
-                done(gameLoop);
-            })
+        if (!global.gameLoop) {
+            global.gameLoop = new GameLoop();
+            global.gameLoop.init(done(global.gameLoop));
         } else {
-            done(gameLoop);
+            done(global.gameLoop);
         }
     }
 

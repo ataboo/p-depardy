@@ -19,26 +19,21 @@ const PORT = 3000;
 // Initialize redis client for user and session storage.
 let redisClient = redis.createClient({
 	host: 'localhost',
-	port: 6379,
-	pass: process.env.REDIS_SECRET
+	port: 6379
 });
 
 // Init redis session store using client.
 let sessionStore = new RedisStore({
 	client: redisClient,
-	logErrors: true,
-	pass: process.env.REDIS_SECRET
+	logErrors: true
 });
 
 // Init session middleware using session store
 app.use(session({
 		store: sessionStore,
 		saveUninitialized: false,
-		resave: false,
-		secret: process.env.REDIS_SECRET
+		resave: false
 	}));
-
-
 app.use(cookieParser());
 app.use(flash());
 app.use(passport.initialize());
@@ -51,7 +46,6 @@ let io = SocketIO(server);
 
 io.use(passportSocketIo.authorize({
 	key: 'connect.sid',
-	secret: process.env.REDIS_SECRET,
 	store: sessionStore,
 	passport: passport,
 	cookieParser: cookieParser
