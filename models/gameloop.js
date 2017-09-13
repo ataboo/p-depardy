@@ -5,21 +5,28 @@ const GameData = require('./gamedata')();
     constructor() {
       this.Stages = require('./stages/stages')(this);
       this.gameData = new GameData();
-      this.setStage('pre_round');
     }
 
     init(done) {
-      this.gameData.load(() => {
-        this.currentStage.entry();
+      this.gameData.init(() => {
+        this.setStage('pre_round');
         done();
       })
     }
 
     currentStage() {
-      Stages[this.gameData.stageName];
+      return this.Stages[this.gameData.stageName];
     }
 
     hostCheckIn(user, done) {
+      if (this.contestants.hasOwnProperty(user.id)) {
+        delete this.contestants[user.id];
+      }
+
+      if (this.spectators.hasOwnProperty(user.id)) {
+        delete this.spectators[user.id];
+      }
+
       if (!this.gameData.host) {
         this.gameData.addHost(user);
       } else {
@@ -32,9 +39,12 @@ const GameData = require('./gamedata')();
     }
 
     contestantCheckIn(user, done) {
-      if (!this.gridSquares) {
-        done(false, 'Game not Started yet.');
-        return;
+      if(this.host && this.host.id === user.id) {
+        this.host = undefined;
+      }
+
+      if (this.spectators.hasOwnProperty(user.id)) {
+        delete this.spectators[user.id];
       }
 
       if (this.contestants.hasOwnProperty(user.id)) {
@@ -50,36 +60,43 @@ const GameData = require('./gamedata')();
     }
 
     spectatorCheckIn(user, done) {
-      if (!this.gridSquares) {
-        done(false, 'Game not Hosted Yet.');
+      if(this.host && this.host.id === user.id) {
+        this.host = undefined;
+      }
+
+      if (this.contestants.hasOwnProperty(user.id)) {
+        delete this.contestants[user.id];
+      }
+
+      if (this.spectators.hasOwnProperty(user.id)) {
+        if (user.socketId) {
+          this.spectators[user.id].socketId = user.socketId;
+        }
+
+        done(true);
         return;
       }
 
-      let spectator = {
-        id: user.id
-      };
-
-      if (user.socketId) {
-        spectator.socketId = user.socketId;
-      }
-
-      this.spectators[user.id] = spectator;
-
-      this._addNewContestant(user, done);
+      this._addNewSpectator(user, done);
     }
 
     checkOut(user, done) {
       if (this.host.id === user.id) {
         this.host = null;
-      } else {
-        if (this.contestants.hasOwnProperty(user.id)) {
-          delete this.contestants[user.id];
-        }
+        done(true);
       }
 
-      this.save(() => {
+      if (this.contestants.hasOwnProperty(user.id)) {
+        delete this.contestants[user.id];
         done(true);
-      })
+      }
+
+      if (this.spectators.hasOwnProperty(user.id)) {
+        delete this.spectators[user.id];
+        done(true);
+      }
+
+      done(false, 'User not found.');
     }
 
     _addNewContestant(user, done) {
@@ -93,18 +110,28 @@ const GameData = require('./gamedata')();
         score: 0
       };
 
-      this.save(() => {
-        done(true);
-      });
+      done(true);
     };
+
+    _addNewSpectator(user, done) {
+      this.spectators[user.id] = {
+        id: user.id,
+        socketId: user.socketId
+      };
+
+      done(true);
+    }
 
     _canAddContestant() {
       return Object.keys(this.contestants).length < CONTESTANT_CAP;
     };
 
     emit(event, users, data) {
-      for (let i = 0; i < Object.values(users).length; i++) {
-        let user = Object.values(users)[i];
+      for (let userId in users) {
+        let user = users[userId];
+        if(!user.socketId) {
+          continue;
+        }
         socketIo.to(user.socketId).emit(event, data);
       }
     };
@@ -122,7 +149,7 @@ const GameData = require('./gamedata')();
 
     emitHost(event, data) {
       this.emit(event, {
-        user: this.host
+        dummy_id: this.host
       }, data);
     };
 
@@ -130,14 +157,13 @@ const GameData = require('./gamedata')();
       this.emit(event, this.contestants, data);
     };
 
+    emitSpectators(event, data) {
+      this.emit(event, this.spectators, data);
+    }
+
     setStage(stageName) {
-      this.stageName = stageName;
-
-      console.log('Set Stage to: ' + stageName);
-
+      this.gameData.stageName = stageName;
       this.currentStage().entry();
-
-      this.save(() => {});
     };
 
     onContestant(event, user, data) {

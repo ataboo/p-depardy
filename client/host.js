@@ -1,13 +1,13 @@
 window.$ = require('jquery');
-let io = require('socket.io-client');
 
 $(document).ready(function () {
     initSocket();
 });
 
 function initSocket() {
-    let socket = io();
-    let checkingUserId;
+  window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+  let socket = new WebSocket('ws://localhost:3000');
 
     $('.socket-button').on('click', function() {
         let event = $(this).data('event');
@@ -15,7 +15,7 @@ function initSocket() {
 
         console.log('emitting: '+event+' with data: '+data);
 
-        socket.emit(event, data);
+        socket.send(JSON.stringify({event: event, data: data}));
     });
 
     socket.on('buzz-accepted', function(data) {

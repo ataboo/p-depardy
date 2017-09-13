@@ -1,4 +1,5 @@
 module.exports = function(socket, gameLoop) {
+
     let events = [
         'start-pick',
         'start-buzz',
@@ -7,7 +8,7 @@ module.exports = function(socket, gameLoop) {
     ];
 
     socket.request.user.socketId = socket.id;
-    gameLoop.hostCheckIn(socket.request.user, ()=>{});
+    gameLoop.hostCheckIn(socket.request.user);
 
     socket.on('message', (msg) => {
         // gameLoop.emitContestants('outgoing', 'this is daters!');

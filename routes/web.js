@@ -37,7 +37,7 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/spectator', isLoggedIn, function(req, res) {
+    app.get('/spectator', isLoggedIn, canContestant, function(req, res) {
         res.render('spectator', {user: req.user});
     });
 
