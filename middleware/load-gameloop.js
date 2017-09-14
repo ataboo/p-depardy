@@ -1,11 +1,11 @@
-module.exports = function(socketIo) {
+module.exports = function() {
   let global = require('./global');
-    let GameLoop = require('../models/gameloop')(socketIo);
+    let GameLoop = require('../models/gameloop')();
 
     function _getLoop(done) {
         if (!global.gameLoop) {
             global.gameLoop = new GameLoop();
-            global.gameLoop.init(() => {done(global.gameLoop)});
+            global.gameLoop.init(() => {done(global.gameLoop);});
         } else {
             done(global.gameLoop);
         }

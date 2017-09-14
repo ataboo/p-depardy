@@ -46,9 +46,7 @@ require('./config/passport')(passport, redisClient);
 // Init SocketIO and passport middleware.
 const wss = new WSServer({
   verifyClient: (info, done) => {
-    console.log('Parsing session from request...');
     sessionParser(info.req, {}, () => {
-      console.log('Session is parsed!');
       done(info.req.session.passport.user);
     });
   },

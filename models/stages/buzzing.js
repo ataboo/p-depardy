@@ -8,9 +8,9 @@ module.exports = function(gameLoop) {
 
         onContestant(event, user, data) {
             if(event === 'buzzed') {
-                let contestant = this.gameLoop.contestants[user.id];
-                this.gameLoop.checkingContestant = contestant.id;
+                let contestant = this.gameLoop.gameData.findContestants(user.id);
                 if (contestant && !contestant.buzzed) {
+                    this.gameLoop.gameData.checkingContestant = contestant.id;
                     this.gameLoop.emitAll('buzz-accepted', {user_id: contestant.id});
                     contestant.buzzed = true;
                     this.gameLoop.setStage('checking');

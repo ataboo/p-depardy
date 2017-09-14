@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10325,7 +10325,8 @@ return jQuery;
 
 /***/ }),
 /* 1 */,
-/* 2 */
+/* 2 */,
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
@@ -10336,20 +10337,53 @@ window.$ = __webpack_require__(0);
     });
 
     function initSocket() {
-        let socket = new WebSocket('ws://localhost:3000/contestant');
+        //TODO: generate routes in ejs.
+        let socket = new WebSocket('ws://localhost:3000/spectator');
 
-        $('.socket-button').on('click', function() {
-            let event = $(this).data('event');
-            let data = $(this).data('event-data');
+        socket.onmessage = (raw) => {
+            console.log(raw);
 
-            console.log('emitting: '+event+' with data: '+data);
+            let data = JSON.parse(raw.data);
+            if (data.event) {
+                handleEvent(data.event, data.data);
+            }
+        };
+    }
 
-            socket.send(JSON.stringify({event: event, data: data}));
+    function handleEvent(event, data) {
+        switch(event) {
+            case 'init-grid':
+                renderGrid(data);
+                break;
+            case 'highlight-square':
+                highlightSquare(data);
+                break;
+            default:
+                console.error('Event: '+event+' is not supported.');
+        }
+    }
+
+    function renderGrid(data) {
+        $(data.gridSquares).each(function(x, gridSquare) {
+            let $column = makeColumn();
+            let $category = $column.find('.jep-square');
+            $category.html(data.catagories[x]);
+            $(gridSquare).each(function(y, value) {
+                let $square = $category.clone().appendTo($column).html(value);
+                $square.attr('data-grid-x', x).attr('data-grid-y', y);
+            });
         });
-        //
-        // socket.on('buzz-accepted', function(data) {
-        //     $('.answer-button').data('event-data', JSON.stringify({ user_id: data.user_id }));
-        // });
+
+        $('.jep-column:not(.template), .jep-row').show();
+    }
+
+    function makeColumn(category) {
+        return $('.jep-column.template').clone().appendTo($('.jep-row')).removeClass('template');
+    }
+
+    function highlightSquare(data) {
+        $('.jep-square.square-hover').removeClass('square-hover');
+        $('.jep-square[data-grid-x="'+data[0]+'"][data-grid-y="'+data[1]+'"]').addClass('square-hover');
     }
 })();
 

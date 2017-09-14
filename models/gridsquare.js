@@ -16,5 +16,9 @@ module.exports = function() {
         return square;
     };
 
+    GridSquare.prototype.label = function() {
+        return this.blank ? '' : this.value;
+    };
+
     return GridSquare;
 };

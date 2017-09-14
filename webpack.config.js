@@ -4,7 +4,8 @@ const webpack = require('webpack');
 module.exports = {
     entry: {
         host: './client/host.js',
-        contestant: './client/contestant.js'
+        contestant: './client/contestant.js',
+        spectator: './client/spectator.js'
     },
     output: {
         path: path.resolve(__dirname, 'public'),

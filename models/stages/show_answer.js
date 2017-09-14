@@ -4,8 +4,8 @@ module.exports = function(gameLoop) {
     class ShowAnswer extends Stage {
         entry() {
             console.log('Showing Answer.');
-
-            this.gameLoop.emitAll('show-answer', this.gameLoop.currentGridSquare());
+            this.gameLoop.gameData.currentGridSquare().blank = true;
+            this.gameLoop.emitAll('show-answer', this.gameLoop.gameData.currentGridSquare());
         }
 
         onHost(event, user, data) {

@@ -10,6 +10,11 @@ module.exports = function(gameLoop) {
 
         onHost(event, data) {
             if (event === 'start-pick') {
+                if (!this.gameLoop.nextPicker()) {
+                    console.log('No pickers!!!');
+                    return;
+                }
+
                 this.gameLoop.setStage('picking');
             }
         }

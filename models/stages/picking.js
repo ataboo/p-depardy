@@ -7,16 +7,18 @@ module.exports = function(gameLoop) {
 
             this.picker = this.gameLoop.nextPicker();
 
-            console.log('picker is: '+this.picker.id);
+            this.pickSpot = this.gameLoop.gameData.activeQuestion;
 
-            this.pickSpot = [0, 0];
-            this.size = [ this.gameLoop.gridSquares.length, this.gameLoop.gridSquares[0].length];
+            if (typeof this.pickSpot === 'undefined') {
+                this.pickSpot = [0, 0];
+            }
+            this.size = this.gameLoop.gameData.gridSize();
 
-            this.gameLoop.emitAll('picking', this.picker);
+            this.gameLoop.emitAll('picking', this.picker.id);
+            this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
         }
 
         onContestant(event, user, data) {
-            console.log('heard from : '+user.id);
             if (user.id !== this.picker.id) {
                 return;
             }
@@ -54,8 +56,10 @@ module.exports = function(gameLoop) {
             this.pickSpot[0] = Math.min(Math.max(this.pickSpot[0], 0), this.size[0]-1);
             this.pickSpot[1] = Math.min(Math.max(this.pickSpot[1], 0), this.size[1]-1);
 
-            this.gameLoop.emitAll('highlight-square', this.pickSpot);
-            this.gameLoop.emitAll('outgoing', this.pickSpot);
+            console.dir(this.pickSpot);
+
+            this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
+            // this.gameLoop.emitAll('outgoing', this.pickSpot);
         }
 
         _lockPick() {

@@ -1,11 +1,47 @@
 <% include partials/header %>
 
+<style>
+    .jep-square {
+        background-color: midnightblue;
+        color: white;
+        padding: 2rem;
+        margin: 1rem;
+        text-align: center;
+        font-family: monospace;
+        font-size: 200%;
+    }
+
+    .jep-column {
+        display: inline-flex;
+        justify-content: center;
+        align-content: space-around;
+        flex-direction: column
+    }
+
+    .jep-row {
+        width: 100%;
+        display: inline-flex;
+        justify-content: center;
+        align-content: center;
+        flex-direction: row
+    }
+
+    .square-hover {
+        outline: dashed 5px orangered;
+    }
+
+</style>
+
 <h1>Logged in as Spectator <%= user.name %></h1>
-<button id="bootan">push me bitch</button>
 
-<a href="/logout">Logout</a>
+<div class="jep-row" style="display: none">
 
-<div id="message-box">Nothing</div>
+</div>
 
-<script src="app.js"></script>
+<div class="jep-column template" style="display: none">
+    <div class="jep-square">Catagory</div>
+</div>
+
+
+<script src="spectator.bundle.js"></script>
 <% include partials/footer %>
