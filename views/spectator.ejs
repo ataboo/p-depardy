@@ -4,42 +4,73 @@
     .jep-square {
         background-color: midnightblue;
         color: white;
-        padding: 2rem;
-        margin: 1rem;
+        padding: 2vh;
+        margin: 1vh;
         text-align: center;
         font-family: monospace;
-        font-size: 200%;
+        font-size: 3vh;
     }
 
     .jep-column {
-        display: inline-flex;
-        justify-content: center;
         align-content: space-around;
-        flex-direction: column
     }
 
     .jep-row {
         width: 100%;
-        display: inline-flex;
-        justify-content: center;
-        align-content: center;
-        flex-direction: row
     }
 
     .square-hover {
         outline: dashed 5px orangered;
     }
 
+    .fullscreen-question {
+        font-size: 300%;
+        background-color: midnightblue;
+        color: white;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .flex-col {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .flex-row {
+        display: flex;
+        justify-content: center;
+    }
+
+    .content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
 </style>
 
 <h1>Logged in as Spectator <%= user.name %></h1>
+<div class="content">
+    <div class="flex-col" style="width: 100%; height: 80%; background-color: green">
+        <div class="flex-row jep-row" style="display: none">
+        <!--holds grid-->
+        </div>
 
-<div class="jep-row" style="display: none">
+        <div class="flex-col jep-column template" style="display: none">
+            <div class="jep-square">Catagory</div>
+        </div>
 
-</div>
+        <div class="fullscreen-question flex-col" style="display: none">
+            <div class="question-content" style="margin: 3rem"></div>
+        </div>
+    </div>
+    <div style="width:100%;height:20%;background-color: red">
 
-<div class="jep-column template" style="display: none">
-    <div class="jep-square">Catagory</div>
+    </div>
 </div>
 
 

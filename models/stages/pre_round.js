@@ -4,17 +4,14 @@ module.exports = function(gameLoop) {
     class PreRound extends Stage {
         entry() {
             console.log('pre round entry');
+        }
 
+        sync() {
             this.gameLoop.emitAll('pre-start', null);
         }
 
         onHost(event, data) {
             if (event === 'start-pick') {
-                if (!this.gameLoop.nextPicker()) {
-                    console.log('No pickers!!!');
-                    return;
-                }
-
                 this.gameLoop.setStage('picking');
             }
         }

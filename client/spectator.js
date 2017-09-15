@@ -27,6 +27,15 @@ window.$ = require('jquery');
             case 'highlight-square':
                 highlightSquare(data);
                 break;
+            case 'show-question':
+                showQuestion(data);
+                break;
+            case 'show-answer':
+                showAnswer(data);
+                break;
+            case 'picking':
+                hideQuestion();
+                break;
             default:
                 console.error('Event: '+event+' is not supported.');
         }
@@ -36,7 +45,7 @@ window.$ = require('jquery');
         $(data.gridSquares).each(function(x, gridSquare) {
             let $column = makeColumn();
             let $category = $column.find('.jep-square');
-            $category.html(data.catagories[x]);
+            $category.html(data.categories[x]);
             $(gridSquare).each(function(y, value) {
                 let $square = $category.clone().appendTo($column).html(value);
                 $square.attr('data-grid-x', x).attr('data-grid-y', y);
@@ -52,6 +61,27 @@ window.$ = require('jquery');
 
     function highlightSquare(data) {
         $('.jep-square.square-hover').removeClass('square-hover');
-        $('.jep-square[data-grid-x="'+data[0]+'"][data-grid-y="'+data[1]+'"]').addClass('square-hover');
+        squareForGrid(data).addClass('square-hover');
+    }
+
+    function squareForGrid(grid) {
+        return $('.jep-square[data-grid-x="'+grid[0]+'"][data-grid-y="'+grid[1]+'"]')
+    }
+
+    function showQuestion(data) {
+
+        $('.square-hover').html('');
+        $('.question-content').html(data.question);
+        $('.fullscreen-question').show();
+        console.log(data);
+    }
+
+    function showAnswer(data) {
+        $('.question-content').html(data.answer);
+        $('.fullscreen-question').show();
+    }
+
+    function hideQuestion() {
+        $('#fullscreen-question').hide();
     }
 })();

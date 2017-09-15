@@ -8,18 +8,17 @@ module.exports = function(gameLoop) {
 
         onHost(event, user, data) {
             if (event === 'right-answer') {
-                let contestant = this.gameLoop.gameData.findContestants(this.gameLoop.gameData.checkingContestant);
+                let contestant = this.gameLoop.gameData.player(this.gameLoop.gameData.checkingContestant);
                 console.log('contestant: '+contestant);
 
                 contestant.score += this.gameLoop.gameData.currentGridSquare().value;
                 this.gameLoop.gameData.lastPicker = contestant.id;
-                this.gameLoop.emitAll('update-users', this.gameLoop.contestants);
-                this.gameLoop.setStage('show_answer');
+                this.wrapUp();
                 return;
             }
 
             if (event === 'wrong-answer') {
-                let unbuzzed = Object.values(this.gameLoop.gameData.contestants).filter(function(user) {
+                let unbuzzed = gameLoop.gameData.playerType('contestant').filter(function(user) {
                     return !user.buzzed
                 });
 
@@ -27,9 +26,20 @@ module.exports = function(gameLoop) {
                     this.gameLoop.emit('start-buzzing', unbuzzed, '');
                     this.gameLoop.setStage('buzzing');
                 } else {
-                    this.gameLoop.setStage('show_answer');
+                    this.wrapUp();
                 }
             }
+        }
+
+        wrapUp() {
+            this.gameLoop.emitAll('update-users', this.gameLoop.gameData.mapPlayer((player) => {
+                return {
+                    id: player.id,
+                    name: player.name,
+                    score: player.score,
+                }
+            }));
+            this.gameLoop.setStage('show_answer');
         }
     }
 

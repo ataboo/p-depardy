@@ -1,17 +1,18 @@
 module.exports = function() {
   let GridSquare = require('./gridsquare')();
+  let Player = require('./player');
   const CATEGORIES = ['First One', 'Second One'];
   const VALUES = [100, 200, 300, 400, 500];
 
   class GameData {
-    constructor() {
-      this.contestants = {};
-      this.spectators = {};
+    constructor(gameLoop) {
+      this.players = {};
       this.stageName = 'entry';
       this.gridSquares = [];
       this.locked = false;
       this.activeQuestion = [0, 0];
-      this.lasPicker = undefined;
+      this.lastPicker = undefined;
+      this.gameLoop = gameLoop;
     }
 
     init(done) {
@@ -33,16 +34,6 @@ module.exports = function() {
       done();
     }
 
-    allUsers() {
-      let users = Object.assign({}, this.contestants, this.spectators);
-
-      if (this.host) {
-          users[this.host.id] = this.host;
-      }
-
-      return users;
-    }
-
     spectatorGrid() {
       let outGrid = [];
 
@@ -54,40 +45,59 @@ module.exports = function() {
           }
       }
 
-
       return {
-        catagories: CATEGORIES,
+        categories: CATEGORIES,
         gridSquares: outGrid
       };
     }
 
-    hostId() {
-      return this.host ? this.host.id : undefined;
-    }
-
-    getHost() {
-      return this.host;
-    }
-
-    findSpectator(userId) {
-      return this.spectators[userId];
-    }
-
-    findContestants(userId) {
-      return this.contestants[userId];
+    player(userId) {
+        return this.players[userId];
     }
 
     addHost(user) {
-      if (this.locked) {
-        console.error('Cant add host when game is locked.');
-        return;
+        if (this.locked) {
+            console.error('Cant add contestant when game is locked.');
+            return false;
+        }
+
+        return this.addPlayer(new Player(user, Player.HOST));
+    }
+
+    addContestant(user) {
+        if (this.locked) {
+            console.error('Cant add contestant when game is locked.');
+            return false;
+        }
+
+        return this.addPlayer(new Player(user, Player.CONTESTANT));
+    }
+
+    addSpectator(user) {
+        return this.addPlayer(new Player(user, Player.SPECTATOR));
+    }
+
+    addPlayer(player) {
+      let existingPlayer = this.player(player.id);
+      if (existingPlayer) {
+        existingPlayer.socket = player.socket;
+        existingPlayer.type = player.type;
+      } else {
+        this.players[player.id] = player;
       }
 
-      if (this.findContestants(user.id)) {
-        this.contestants[user.id] = undefined;
+      this.gameLoop.currentStage().sync();
+
+      return this.player(player.id);
+    }
+
+    removePlayer(user) {
+      if (this.player(user.id)) {
+        delete this.players[user.id];
+        return true;
       }
 
-      this.host = user;
+      return false;
     }
 
     gridSize() {
@@ -100,36 +110,51 @@ module.exports = function() {
             return undefined;
         }
 
-        console.log('Active Question is: ' + this.activeQuestion);
-
         return this.gridSquares[this.activeQuestion[0]][this.activeQuestion[1]];
     };
 
-    addContestant(user) {
-      if (this.locked) {
-        console.error('Cant add contestant when game is locked.');
-        return;
-      }
-
-      if (host && host.id === user.id) {
-        host = undefined;
-      }
-
-      this.contestants[user.id] = user;
+    sendGrid(player) {
+        player.socket.send(JSON.stringify({event: 'init-grid', data: this.spectatorGrid()}))
     }
 
-    addSpectator(user) {
-      this.spectators[user.id] = user;
+    eachPlayer(callback) {
+      for(let id in this.players) {
+        if (this.players.hasOwnProperty(id)) {
+            callback(this.players[id]);
+        }
+      }
     }
 
-    getUserType(userId) {
-      if (this.host && this.host.id === userId) {
-        return 'host';
+    mapPlayer(callback) {
+      let mapped = [];
+
+      for(let id in this.players) {
+        if (this.players.hasOwnProperty(id)) {
+          mapped.push(callback(this.player(id)));
+        }
       }
-      if (this.contestants.hasOwnProperty(userId)) {
-        return 'contestant';
+
+      return mapped;
+    }
+
+    playerType(type) {
+      return Object.values(this.players).filter(player => {
+        return player.type === type;
+      });
+    }
+
+    nextPicker() {
+      let contestants = this.playerType(Player.CONTESTANT);
+      if (!this.lastPicker || !this.player(this.lastPicker)) {
+        if (contestants.length) {
+          this.lastPicker = contestants[Math.floor(contestants.length*Math.random())].id;
+        } else {
+          return false;
+        }
+
       }
-      return 'spectator';
+
+      return this.player(this.lastPicker);
     }
   }
 

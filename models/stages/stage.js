@@ -8,6 +8,10 @@ module.exports = function() {
             //
         }
 
+        sync() {
+            //
+        }
+
         onContestant(event, user, data) {
             //
         }
