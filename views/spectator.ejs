@@ -3,19 +3,24 @@
 <style>
     .jep-square {
         background-color: midnightblue;
-        color: white;
+        color: #ffdc74;
         padding: 2vh;
         margin: 1vh;
+        width: 10vw;
+        height: 6vw;
         text-align: center;
-        font-family: monospace;
-        font-size: 3vh;
+        font-family: helvetica;
+        font-size: 2.5vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .jep-column {
         align-content: space-around;
     }
 
-    .jep-row {
+    .grid-holder {
         width: 100%;
     }
 
@@ -30,6 +35,11 @@
         text-align: center;
         width: 100%;
         height: 100%;
+    }
+
+    .category {
+        font-size: 1.5vw;
+        margin-bottom: 1.5vh
     }
 
     .flex-col {
@@ -56,12 +66,12 @@
 <h1>Logged in as Spectator <%= user.name %></h1>
 <div class="content">
     <div class="flex-col" style="width: 100%; height: 80%; background-color: green">
-        <div class="flex-row jep-row" style="display: none">
+        <div class="flex-row grid-holder" style="display: none">
         <!--holds grid-->
         </div>
 
         <div class="flex-col jep-column template" style="display: none">
-            <div class="jep-square">Catagory</div>
+            <div class="jep-square category">Catagory</div>
         </div>
 
         <div class="fullscreen-question flex-col" style="display: none">

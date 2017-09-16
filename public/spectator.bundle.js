@@ -10332,11 +10332,17 @@ return jQuery;
 window.$ = __webpack_require__(0);
 
 (function() {
+    const GridDisplay = __webpack_require__(4);
+
+    let gridDisplay;
+
     $(document).ready(function () {
         initSocket();
     });
 
     function initSocket() {
+        gridDisplay = new GridDisplay();
+
         //TODO: generate routes in ejs.
         let socket = new WebSocket('ws://localhost:3000/spectator');
 
@@ -10353,69 +10359,88 @@ window.$ = __webpack_require__(0);
     function handleEvent(event, data) {
         switch(event) {
             case 'init-grid':
-                renderGrid(data);
+                gridDisplay.renderGrid(data);
                 break;
             case 'highlight-square':
-                highlightSquare(data);
+                gridDisplay.highlightSquare(data);
                 break;
             case 'show-question':
-                showQuestion(data);
+                gridDisplay.showQuestion(data);
                 break;
             case 'show-answer':
-                showAnswer(data);
+                gridDisplay.showAnswer(data);
                 break;
             case 'picking':
-                hideQuestion();
+                gridDisplay.hideQuestion();
                 break;
             default:
                 console.error('Event: '+event+' is not supported.');
         }
     }
+})();
 
-    function renderGrid(data) {
-        $(data.gridSquares).each(function(x, gridSquare) {
-            let $column = makeColumn();
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+class GridDisplay {
+    constructor() {
+        this.$gridHolder = $('.grid-holder');
+        this.$questionHolder = $('.fullscreen-question');
+        this.$questionContent = $();
+
+    }
+
+    renderGrid(data) {
+        this.$questionHolder.hide();
+
+        $(data.gridSquares).each((x, gridSquare) => {
+            let $column = GridDisplay._makeColumn().appendTo(this.$gridHolder);
             let $category = $column.find('.jep-square');
             $category.html(data.categories[x]);
             $(gridSquare).each(function(y, value) {
-                let $square = $category.clone().appendTo($column).html(value);
-                $square.attr('data-grid-x', x).attr('data-grid-y', y);
+                let $newSquare = $category.clone().removeClass('category').appendTo($column).html('$'+value);
+                $newSquare.attr('data-grid-x', x).attr('data-grid-y', y);
             });
         });
 
-        $('.jep-column:not(.template), .jep-row').show();
+        $('.jep-column:not(.template)').show();
+        this.$gridHolder.show();
     }
 
-    function makeColumn(category) {
-        return $('.jep-column.template').clone().appendTo($('.jep-row')).removeClass('template');
-    }
-
-    function highlightSquare(data) {
+    highlightSquare(data) {
         $('.jep-square.square-hover').removeClass('square-hover');
-        squareForGrid(data).addClass('square-hover');
+        GridDisplay._squareForGrid(data).addClass('square-hover');
     }
 
-    function squareForGrid(grid) {
-        return $('.jep-square[data-grid-x="'+grid[0]+'"][data-grid-y="'+grid[1]+'"]')
-    }
-
-    function showQuestion(data) {
-
+    showQuestion(data) {
+        this.$gridHolder.hide();
         $('.square-hover').html('');
-        $('.question-content').html(data.question);
-        $('.fullscreen-question').show();
+        this.$questionContent.html(data.question);
+        this.$questionHolder.show();
         console.log(data);
     }
 
-    function showAnswer(data) {
-        $('.question-content').html(data.answer);
-        $('.fullscreen-question').show();
+    showAnswer(data) {
+        this.$gridHolder.hide();
+        this.$questionContent.html(data.answer);
+        this.$questionHolder.show();
     }
 
-    function hideQuestion() {
-        $('#fullscreen-question').hide();
+    hideQuestion() {
+        this.$questionHolder.hide();
+        this.$gridHolder.show();
     }
-})();
+
+    static _makeColumn() {
+        return $('.jep-column.template').clone().removeClass('template');
+    }
+    static _squareForGrid(grid) {
+        return $('.jep-square[data-grid-x="'+grid[0]+'"][data-grid-y="'+grid[1]+'"]')
+    }
+}
+
+module.exports = GridDisplay;
 
 /***/ })
 /******/ ]);

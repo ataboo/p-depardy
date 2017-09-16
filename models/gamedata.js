@@ -1,8 +1,8 @@
 module.exports = function() {
   let GridSquare = require('./gridsquare')();
   let Player = require('./player');
-  const CATEGORIES = ['First One', 'Second One'];
-  const VALUES = [100, 200, 300, 400, 500];
+  const CATEGORIES = ['First One Has a Longer title', 'Second One has a longer title', 'Third One', 'Fourth One has a longer title', 'Fifth One', 'Sixth One'];
+  const VALUES = [200, 400, 600, 800, 1000];
 
   class GameData {
     constructor(gameLoop) {
