@@ -13,6 +13,7 @@ module.exports = function() {
       this.activeQuestion = [0, 0];
       this.lastPicker = undefined;
       this.gameLoop = gameLoop;
+      this.playerSummaries = undefined;
     }
 
     init(done) {
@@ -86,13 +87,25 @@ module.exports = function() {
         this.players[player.id] = player;
       }
 
+      this.updatePlayerSummaries();
       this.gameLoop.currentStage().sync();
 
       return this.player(player.id);
     }
 
+    updatePlayerSummaries() {
+        this.playerSummaries = this.playerType(Player.CONTESTANT).map((player) => {
+            return {
+                id: player.id,
+                name: player.name,
+                score: player.score
+            };
+        });
+    }
+
     removePlayer(user) {
       if (this.player(user.id)) {
+          this.updatePlayerSummaries();
         delete this.players[user.id];
         return true;
       }
@@ -114,7 +127,12 @@ module.exports = function() {
     };
 
     sendGrid(player) {
-        player.socket.send(JSON.stringify({event: 'init-grid', data: this.spectatorGrid()}))
+        console.log('send grid.');
+        console.dir(this.playerSummaries);
+
+        player.socket.send(
+            JSON.stringify({event: 'init-grid', data: { grid: this.spectatorGrid(), players: this.playerSummaries } })
+        );
     }
 
     eachPlayer(callback) {

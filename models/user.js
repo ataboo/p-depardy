@@ -1,4 +1,5 @@
-module.exports = function (redisClient) {
+module.exports = function () {
+    const redisClient = require('../middleware/global').redisClient
     const USERS_NAMESPACE = 'p_depardy_users';
 
     function User(attributes) {

@@ -1,9 +1,19 @@
+const User = require('../models/user')();
+
 class Player {
     constructor(user, type) {
+        console.dir(user.id);
+
+        User.findById(user.id, (err, user) => {
+            this.name = user.name;
+            this.email = user.email;
+        });
+
         this.socket = user.socket;
         this.id = user.id;
         this.type = type;
         this.buzzed = false;
+        this.score = 0;
     }
 
     emit(event, data) {

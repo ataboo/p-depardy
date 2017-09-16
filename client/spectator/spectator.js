@@ -16,10 +16,9 @@ window.$ = require('jquery');
         let socket = new WebSocket('ws://localhost:3000/spectator');
 
         socket.onmessage = (raw) => {
-            console.log(raw);
-
             let data = JSON.parse(raw.data);
             if (data.event) {
+                console.log(data.event);
                 handleEvent(data.event, data.data);
             }
         };
@@ -28,7 +27,8 @@ window.$ = require('jquery');
     function handleEvent(event, data) {
         switch(event) {
             case 'init-grid':
-                gridDisplay.renderGrid(data);
+                gridDisplay.renderGrid(data.grid);
+                gridDisplay.updateUsers(data);
                 break;
             case 'highlight-square':
                 gridDisplay.highlightSquare(data);
@@ -41,6 +41,9 @@ window.$ = require('jquery');
                 break;
             case 'picking':
                 gridDisplay.hideQuestion();
+                break;
+            case 'update-users':
+                gridDisplay.updateUsers(data);
                 break;
             default:
                 console.error('Event: '+event+' is not supported.');

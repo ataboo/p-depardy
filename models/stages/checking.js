@@ -9,7 +9,6 @@ module.exports = function(gameLoop) {
         onHost(event, user, data) {
             if (event === 'right-answer') {
                 let contestant = this.gameLoop.gameData.player(this.gameLoop.gameData.checkingContestant);
-                console.log('contestant: '+contestant);
 
                 contestant.score += this.gameLoop.gameData.currentGridSquare().value;
                 this.gameLoop.gameData.lastPicker = contestant.id;
@@ -32,13 +31,7 @@ module.exports = function(gameLoop) {
         }
 
         wrapUp() {
-            this.gameLoop.emitAll('update-users', this.gameLoop.gameData.mapPlayer((player) => {
-                return {
-                    id: player.id,
-                    name: player.name,
-                    score: player.score,
-                }
-            }));
+            this.gameLoop.syncUsers();
             this.gameLoop.setStage('show_answer');
         }
     }

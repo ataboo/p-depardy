@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10324,30 +10324,34 @@ return jQuery;
 
 
 /***/ }),
-/* 1 */
+/* 1 */,
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
 
-$(document).ready(function () {
-    initSocket();
-});
-
-function initSocket() {
-  window.WebSocket = window.WebSocket || window.MozWebSocket;
-
-  let socket = new WebSocket('ws://localhost:3000/host');
-
-    $('.socket-button').on('click', function() {
-        let event = $(this).data('event');
-        let data = $(this).data('event-data');
-
-        console.log('emitting: '+event+' with data: '+data);
-
-        socket.send(JSON.stringify({event: event, data: data}));
+(function () {
+    $(document).ready(function () {
+        initSocket();
     });
-}
 
+    function initSocket() {
+        let socket = new WebSocket('ws://localhost:3000/contestant');
+
+        $('.socket-button').on('click', function () {
+            let event = $(this).data('event');
+            let data = $(this).data('event-data');
+
+            console.log('emitting: ' + event + ' with data: ' + data);
+
+            socket.send(JSON.stringify({ event: event, data: data }));
+        });
+        //
+        // socket.on('buzz-accepted', function(data) {
+        //     $('.answer-button').data('event-data', JSON.stringify({ user_id: data.user_id }));
+        // });
+    }
+})();
 
 /***/ })
 /******/ ]);

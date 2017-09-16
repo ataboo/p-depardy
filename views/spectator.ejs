@@ -1,88 +1,29 @@
 <% include partials/header %>
 
-<style>
-    .jep-square {
-        background-color: midnightblue;
-        color: #ffdc74;
-        padding: 2vh;
-        margin: 1vh;
-        width: 10vw;
-        height: 6vw;
-        text-align: center;
-        font-family: helvetica;
-        font-size: 2.5vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .jep-column {
-        align-content: space-around;
-    }
-
-    .grid-holder {
-        width: 100%;
-    }
-
-    .square-hover {
-        outline: dashed 5px orangered;
-    }
-
-    .fullscreen-question {
-        font-size: 300%;
-        background-color: midnightblue;
-        color: white;
-        text-align: center;
-        width: 100%;
-        height: 100%;
-    }
-
-    .category {
-        font-size: 1.5vw;
-        margin-bottom: 1.5vh
-    }
-
-    .flex-col {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .flex-row {
-        display: flex;
-        justify-content: center;
-    }
-
-    .content {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-</style>
-
-<h1>Logged in as Spectator <%= user.name %></h1>
-<div class="content">
-    <div class="flex-col" style="width: 100%; height: 80%; background-color: green">
-        <div class="flex-row grid-holder" style="display: none">
-        <!--holds grid-->
-        </div>
-
-        <div class="flex-col jep-column template" style="display: none">
-            <div class="jep-square category">Catagory</div>
-        </div>
-
-        <div class="fullscreen-question flex-col" style="display: none">
-            <div class="question-content" style="margin: 3rem"></div>
-        </div>
+<div class="col-xs-12 row" style="overflow-x:auto;">
+    <div class="flex-row grid-holder" style="display: none">
+    <!--holds grid-->
     </div>
-    <div style="width:100%;height:20%;background-color: red">
 
+    <div class="flex-col jep-column template" style="display: none">
+        <div class="jep-square category">Catagory</div>
+    </div>
+
+    <div class="fullscreen-question flex-col" style="display: none">
+        <div class="question-content" style="margin: 3rem"></div>
+    </div>
+</div>
+<div class="col-xs-12 row" style="overflow-x: auto;">
+    <div class="flex-row w-100 player-holder" style="justify-content: center; align-content: center;">
+        <div class="player-card template" style="display: none">
+            <div class="player-name">
+            </div>
+            <div class="player-score">
+            </div>
+        </div>
     </div>
 </div>
 
 
-<script src="spectator.bundle.js"></script>
+<script src="js/spectator.bundle.js"></script>
 <% include partials/footer %>

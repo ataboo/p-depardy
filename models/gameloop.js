@@ -103,8 +103,9 @@ module.exports = function (redisClient, socketIo) {
             });
         }
 
-        userSummary() {
-
+        syncUsers() {
+            console.dir(this.gameData.playerSummaries);
+            this.emitSpectators('update-users', {players: this.gameData.playerSummaries});
         }
     }
 

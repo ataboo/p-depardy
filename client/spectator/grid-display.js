@@ -2,8 +2,8 @@ class GridDisplay {
     constructor() {
         this.$gridHolder = $('.grid-holder');
         this.$questionHolder = $('.fullscreen-question');
-        this.$questionContent = $();
-
+        this.$questionContent = $('.question-content');
+        this.$playerHolder = $('.player-holder');
     }
 
     renderGrid(data) {
@@ -24,6 +24,7 @@ class GridDisplay {
     }
 
     highlightSquare(data) {
+        console.log('ran');
         $('.jep-square.square-hover').removeClass('square-hover');
         GridDisplay._squareForGrid(data).addClass('square-hover');
     }
@@ -45,6 +46,32 @@ class GridDisplay {
     hideQuestion() {
         this.$questionHolder.hide();
         this.$gridHolder.show();
+    }
+
+    updateUsers(data) {
+        let playerTemplate
+        $(data.players).each((index, player) => {
+            this._createOrUpdatePlayer(player);
+        })
+    }
+
+    _createOrUpdatePlayer(player) {
+        let $existing = this.$playerHolder.find('[data-player-id="'+player.id+'"]');
+        if ($existing.length) {
+            $existing.find('.player-score').html = '$'+player.score;
+            return;
+        }
+
+        let $template = this.$playerHolder
+            .find('.template')
+            .clone()
+            .removeClass('template')
+            .appendTo(this.$playerHolder);
+
+        $template.attr('data-player-id', player.id);
+        $template.find('.player-name').html(player.name);
+        $template.find('.player-score').html('$'+player.score);
+        $template.show();
     }
 
     static _makeColumn() {

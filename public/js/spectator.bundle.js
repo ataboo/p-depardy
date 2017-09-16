@@ -10331,7 +10331,7 @@ return jQuery;
 
 window.$ = __webpack_require__(0);
 
-(function() {
+(function () {
     const GridDisplay = __webpack_require__(4);
 
     let gridDisplay;
@@ -10346,20 +10346,20 @@ window.$ = __webpack_require__(0);
         //TODO: generate routes in ejs.
         let socket = new WebSocket('ws://localhost:3000/spectator');
 
-        socket.onmessage = (raw) => {
-            console.log(raw);
-
+        socket.onmessage = raw => {
             let data = JSON.parse(raw.data);
             if (data.event) {
+                console.log(data.event);
                 handleEvent(data.event, data.data);
             }
         };
     }
 
     function handleEvent(event, data) {
-        switch(event) {
+        switch (event) {
             case 'init-grid':
-                gridDisplay.renderGrid(data);
+                gridDisplay.renderGrid(data.grid);
+                gridDisplay.updateUsers(data);
                 break;
             case 'highlight-square':
                 gridDisplay.highlightSquare(data);
@@ -10373,8 +10373,11 @@ window.$ = __webpack_require__(0);
             case 'picking':
                 gridDisplay.hideQuestion();
                 break;
+            case 'update-users':
+                gridDisplay.updateUsers(data);
+                break;
             default:
-                console.error('Event: '+event+' is not supported.');
+                console.error('Event: ' + event + ' is not supported.');
         }
     }
 })();
@@ -10387,8 +10390,8 @@ class GridDisplay {
     constructor() {
         this.$gridHolder = $('.grid-holder');
         this.$questionHolder = $('.fullscreen-question');
-        this.$questionContent = $();
-
+        this.$questionContent = $('.question-content');
+        this.$playerHolder = $('.player-holder');
     }
 
     renderGrid(data) {
@@ -10398,8 +10401,8 @@ class GridDisplay {
             let $column = GridDisplay._makeColumn().appendTo(this.$gridHolder);
             let $category = $column.find('.jep-square');
             $category.html(data.categories[x]);
-            $(gridSquare).each(function(y, value) {
-                let $newSquare = $category.clone().removeClass('category').appendTo($column).html('$'+value);
+            $(gridSquare).each(function (y, value) {
+                let $newSquare = $category.clone().removeClass('category').appendTo($column).html('$' + value);
                 $newSquare.attr('data-grid-x', x).attr('data-grid-y', y);
             });
         });
@@ -10409,6 +10412,7 @@ class GridDisplay {
     }
 
     highlightSquare(data) {
+        console.log('ran');
         $('.jep-square.square-hover').removeClass('square-hover');
         GridDisplay._squareForGrid(data).addClass('square-hover');
     }
@@ -10432,11 +10436,33 @@ class GridDisplay {
         this.$gridHolder.show();
     }
 
+    updateUsers(data) {
+        let playerTemplate;
+        $(data.players).each((index, player) => {
+            this._createOrUpdatePlayer(player);
+        });
+    }
+
+    _createOrUpdatePlayer(player) {
+        let $existing = this.$playerHolder.find('[data-player-id="' + player.id + '"]');
+        if ($existing.length) {
+            $existing.find('.player-score').html = '$' + player.score;
+            return;
+        }
+
+        let $template = this.$playerHolder.find('.template').clone().removeClass('template').appendTo(this.$playerHolder);
+
+        $template.attr('data-player-id', player.id);
+        $template.find('.player-name').html(player.name);
+        $template.find('.player-score').html('$' + player.score);
+        $template.show();
+    }
+
     static _makeColumn() {
         return $('.jep-column.template').clone().removeClass('template');
     }
     static _squareForGrid(grid) {
-        return $('.jep-square[data-grid-x="'+grid[0]+'"][data-grid-y="'+grid[1]+'"]')
+        return $('.jep-square[data-grid-x="' + grid[0] + '"][data-grid-y="' + grid[1] + '"]');
     }
 }
 

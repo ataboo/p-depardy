@@ -1,0 +1,80 @@
+body {
+    background-color: #868685
+}
+
+.jep-square {
+    background-color: midnightblue;
+    color: #ffdc74;
+    font-size: 20px;
+    text-align: center;
+    font-family: helvetica;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+    padding: 4px;
+    width: 110px;
+    height: 80px;
+    font-weight: bolder;
+    border-radius: 4px;
+    box-shadow: 2px 2px 3px black;
+}
+
+.jep-column {
+    align-content: space-around;
+}
+
+.grid-holder {
+    flex-basis: auto; /* default value */
+    flex-grow: 1;
+}
+
+.square-hover {
+    outline: dashed 5px white;
+}
+
+.fullscreen-question {
+    font-size: 300%;
+    background-color: midnightblue;
+    color: white;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+.category {
+    font-size: 14px;
+    margin-bottom: 16px
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.flex-row {
+    display: flex;
+    justify-content: center;
+}
+
+.content {
+}
+
+.player-card {
+    color: #ffdc74;
+    background-color: #383634;
+    border-radius: 4px;
+    text-align: center;
+    padding: 8px;
+    margin: 20px 4px;
+    box-shadow: 2px 2px 3px black;
+}
+
+.player-name {
+
+}
+
+.player-score {
+    font-size: 20px;
+}
