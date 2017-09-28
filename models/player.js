@@ -1,12 +1,16 @@
 const User = require('../models/user')();
 
 class Player {
-    constructor(user, type) {
+    constructor(user, type, done = null) {
         console.dir(user.id);
 
         User.findById(user.id, (err, user) => {
             this.name = user.name;
             this.email = user.email;
+
+            if (typeof done === 'function') {
+                done();
+            }
         });
 
         this.socket = user.socket;

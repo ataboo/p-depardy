@@ -21,22 +21,19 @@ module.exports = function (redisClient, socketIo) {
         }
 
         hostCheckIn(user, done) {
-            done(this.gameData.addHost(user));
+            this.gameData.addHost(user, done);
         }
 
         contestantCheckIn(user, done) {
-            done(this.gameData.addContestant(user));
+            this.gameData.addContestant(user, done);
         }
 
         spectatorCheckIn(user, done) {
-            let spectator = this.gameData.addSpectator(user);
+            let spectator = this.gameData.addSpectator(user, done);
+        }
 
-            if (spectator) {
-                this.gameData.sendGrid(spectator);
-                done(true);
-            } else {
-                done(false);
-            }
+        awardScoreToCurrent() {
+            this.gameData.awardCurrentQuestion();
         }
 
         checkOut(user, done) {

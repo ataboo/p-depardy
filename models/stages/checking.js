@@ -8,10 +8,7 @@ module.exports = function(gameLoop) {
 
         onHost(event, user, data) {
             if (event === 'right-answer') {
-                let contestant = this.gameLoop.gameData.player(this.gameLoop.gameData.checkingContestant);
-
-                contestant.score += this.gameLoop.gameData.currentGridSquare().value;
-                this.gameLoop.gameData.lastPicker = contestant.id;
+                this.gameLoop.awardScoreToCurrent();
                 this.wrapUp();
                 return;
             }

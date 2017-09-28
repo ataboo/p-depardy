@@ -30,9 +30,10 @@ module.exports = {
         filename: 'js/[name].bundle.js',
     },
 
-    plugins: [new ExtractTextPlugin({
-        filename: 'css/[name].css'
-    })
+    plugins: [
+        new ExtractTextPlugin({
+            filename: 'css/[name].css'
+        }),
     ],
 
     resolve: {

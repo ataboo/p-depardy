@@ -9,12 +9,15 @@ class GridDisplay {
     renderGrid(data) {
         this.$questionHolder.hide();
 
+        this.$gridHolder.html('');
+
         $(data.gridSquares).each((x, gridSquare) => {
             let $column = GridDisplay._makeColumn().appendTo(this.$gridHolder);
             let $category = $column.find('.jep-square');
             $category.html(data.categories[x]);
             $(gridSquare).each(function(y, value) {
-                let $newSquare = $category.clone().removeClass('category').appendTo($column).html('$'+value);
+                let dispVal = value > 0 ? '$'+value : '';
+                let $newSquare = $category.clone().removeClass('category').appendTo($column).html(dispVal);
                 $newSquare.attr('data-grid-x', x).attr('data-grid-y', y);
             });
         });
@@ -24,7 +27,6 @@ class GridDisplay {
     }
 
     highlightSquare(data) {
-        console.log('ran');
         $('.jep-square.square-hover').removeClass('square-hover');
         GridDisplay._squareForGrid(data).addClass('square-hover');
     }
@@ -49,16 +51,20 @@ class GridDisplay {
     }
 
     updateUsers(data) {
-        let playerTemplate
+        this.$playerHolder.children().not('.template').attr('data-delete-me', true);
+
         $(data.players).each((index, player) => {
             this._createOrUpdatePlayer(player);
         })
+
+        this.$playerHolder.find('[data-delete-me="true"]').remove();
     }
 
     _createOrUpdatePlayer(player) {
         let $existing = this.$playerHolder.find('[data-player-id="'+player.id+'"]');
         if ($existing.length) {
-            $existing.find('.player-score').html = '$'+player.score;
+            $existing.find('.player-score').html('$'+player.score);
+            $existing.attr('data-delete-me', false);
             return;
         }
 

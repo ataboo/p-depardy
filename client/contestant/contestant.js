@@ -17,6 +17,8 @@ window.$ = require('jquery');
             socket.send(JSON.stringify({event: event, data: data}));
         });
         //
+        //
+        ////
         // socket.on('buzz-accepted', function(data) {
         //     $('.answer-button').data('event-data', JSON.stringify({ user_id: data.user_id }));
         // });

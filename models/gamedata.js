@@ -56,26 +56,48 @@ module.exports = function() {
         return this.players[userId];
     }
 
-    addHost(user) {
-        if (this.locked) {
-            console.error('Cant add contestant when game is locked.');
-            return false;
-        }
+    awardCurrentQuestion() {
+        let player = this.players[this.checkingContestant];
+        let gridSquare = this.currentGridSquare();
 
-        return this.addPlayer(new Player(user, Player.HOST));
+        if (player && gridSquare) {
+            player.score += gridSquare.value;
+            this.updatePlayerSummaries();
+        } else {
+            console.error('Cannot find player with id: '+playerId);
+        }
     }
 
-    addContestant(user) {
+    addHost(user, done) {
         if (this.locked) {
             console.error('Cant add contestant when game is locked.');
-            return false;
+            done(false);
+            return;
         }
-
-        return this.addPlayer(new Player(user, Player.CONTESTANT));
+        let player = new Player(user, Player.HOST, () => {
+            this.addPlayer(player);
+            done(true);
+        })
     }
 
-    addSpectator(user) {
-        return this.addPlayer(new Player(user, Player.SPECTATOR));
+    addContestant(user, done) {
+        if (this.locked) {
+            console.error('Cant add contestant when game is locked.');
+            done(false);
+            return;
+        }
+
+        let player = new Player(user, Player.CONTESTANT, () => {
+            this.addPlayer(player);
+            done(true);
+        })
+    }
+
+    addSpectator(user, done) {
+        let player = new Player(user, Player.SPECTATOR, () => {
+            this.addPlayer(player);
+            done(true);
+        })
     }
 
     addPlayer(player) {
@@ -87,10 +109,33 @@ module.exports = function() {
         this.players[player.id] = player;
       }
 
+      console.log(player.name);
       this.updatePlayerSummaries();
+      this.eachPlayer((player) => {
+          if (player.type == Player.SPECTATOR) {
+              this.sendGrid(player);
+          }
+      })
+
       this.gameLoop.currentStage().sync();
 
       return this.player(player.id);
+    }
+
+    removePlayer(user) {
+        if (this.player(user.id)) {
+            delete this.players[user.id];
+            this.updatePlayerSummaries();
+            this.eachPlayer((player) => {
+                if (player.type == Player.SPECTATOR) {
+                    this.sendGrid(player);
+                }
+            })
+
+            return true;
+        }
+
+        return false;
     }
 
     updatePlayerSummaries() {
@@ -103,15 +148,6 @@ module.exports = function() {
         });
     }
 
-    removePlayer(user) {
-      if (this.player(user.id)) {
-          this.updatePlayerSummaries();
-        delete this.players[user.id];
-        return true;
-      }
-
-      return false;
-    }
 
     gridSize() {
       return [this.gridSquares.length, this.gridSquares[0].length];
