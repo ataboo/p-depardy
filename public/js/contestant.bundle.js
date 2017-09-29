@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10324,20 +10324,51 @@ return jQuery;
 
 
 /***/ }),
-/* 1 */,
-/* 2 */
+/* 1 */
+/***/ (function(module, exports) {
+
+function _initSocket(path, handleEvent) {
+    let socket = new WebSocket(path);
+
+    socket.onmessage = raw => {
+        let data = JSON.parse(raw.data);
+        if (data.event) {
+            console.log(data.event);
+            handleEvent(data.event, data.data);
+        }
+    };
+
+    return socket;
+}
+
+module.exports = {
+    initSocket: _initSocket
+};
+
+/***/ }),
+/* 2 */,
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
 
 (function () {
+    const ClientHandler = __webpack_require__(1);
+    let socket;
+    let myId;
+
+    $.fn.toggleBell = function (toggle) {
+        this.find('i.fa').toggleClass('fa-bell-slash', !toggle).toggleClass('fa-bell', toggle);
+        return this;
+    };
+
     $(document).ready(function () {
-        initSocket();
+        socket = ClientHandler.initSocket('ws://localhost:3000/contestant', handleEvent);
+
+        initButtons();
     });
 
-    function initSocket() {
-        let socket = new WebSocket('ws://localhost:3000/contestant');
-
+    function initButtons() {
         $('.socket-button').on('click', function () {
             let event = $(this).data('event');
             let data = $(this).data('event-data');
@@ -10346,12 +10377,80 @@ window.$ = __webpack_require__(0);
 
             socket.send(JSON.stringify({ event: event, data: data }));
         });
-        //
-        //
-        ////
-        // socket.on('buzz-accepted', function(data) {
-        //     $('.answer-button').data('event-data', JSON.stringify({ user_id: data.user_id }));
-        // });
+
+        $('.buzzer').on('click', function () {
+            if ($(this).hasClass('buzzer-ready')) {
+                socket.send(JSON.stringify({ event: 'buzzed', data: { player_id: myId } }));
+            }
+
+            return false;
+        });
+    }
+
+    function handleEvent(event, data) {
+        switch (event) {
+            case 'picking':
+                showPick();
+                break;
+            case 'show-question':
+                showQuestion(data);
+                break;
+            case 'start-buzzing':
+                startBuzz();
+                break;
+            case 'buzz-accepted':
+                buzzAccepted(data);
+                break;
+            case 'check-in':
+                checkIn(data);
+                break;
+            case 'wrong-answer':
+                answerWrong();
+                break;
+            case 'right-answer':
+                answerRight();
+                break;
+        }
+    }
+
+    function showPick() {
+        $('.buzzer').hide();
+
+        console.log('showing pick');
+        $('.pick-buttons').show();
+    }
+
+    function showQuestion(data) {
+        $('.buzzer').toggleBell(false).removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong').show();
+
+        $('.pick-buttons').hide();
+        $('.buzz-button').show();
+    }
+
+    function startBuzz() {
+        $('.buzzer').addClass('buzzer-ready').toggleBell(true);
+    }
+
+    function buzzAccepted(data) {
+        $('.buzzer').removeClass('buzzer-ready');
+
+        if (data.player_id == myId) {
+            $('.buzzer').addClass('buzzer-buzzed');
+        } else {
+            $('.buzzer').toggleBell(false);
+        }
+    }
+
+    function checkIn(data) {
+        myId = data.player_id;
+    }
+
+    function answerWrong() {
+        $('.buzzer').toggleBell(false).removeClass('buzzer-buzzed').addClass('buzzer-wrong');
+    }
+
+    function answerRight() {
+        $('.buzzer').removeClass('buzzer-buzzed').addClass('buzzer-right');
     }
 })();
 

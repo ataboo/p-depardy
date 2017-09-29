@@ -23,7 +23,7 @@ module.exports = function(gameLoop) {
 
         sync() {
             console.log('ran pick sync');
-            this.gameLoop.emitAll('picking', this.picker.id);
+            this.gameLoop.emitAll('picking', { player_id: this.picker.id });
             this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
         }
 

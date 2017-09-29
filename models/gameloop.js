@@ -64,6 +64,10 @@ module.exports = function (redisClient, socketIo) {
             this.emit(event, this.gameData.playerType(Player.SPECTATOR), data);
         }
 
+        emitCheckingContestant(event, data) {
+            this.emit(event, this.gameData.players[this.gameData.checkingContestant], data);
+        }
+
         setStage(stageName) {
             this.gameData.stageName = stageName;
             this.currentStage().entry();
@@ -73,6 +77,12 @@ module.exports = function (redisClient, socketIo) {
         onContestant(event, user, data) {
             this.currentStage().onContestant(event, user, data);
         };
+
+        unbuzzedPlayers() {
+            return this.gameData.playerType('contestant').filter(function(user) {
+                return !user.buzzed
+            });
+        }
 
         onHost(event, user, data) {
             this.currentStage().onHost(event, user, data);

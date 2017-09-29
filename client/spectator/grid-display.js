@@ -32,6 +32,7 @@ class GridDisplay {
     }
 
     showQuestion(data) {
+        $('.player-buzzed').removeClass('player-buzzed');
         this.$gridHolder.hide();
         $('.square-hover').html('');
         this.$questionContent.html(data.question);
@@ -45,9 +46,12 @@ class GridDisplay {
         this.$questionHolder.show();
     }
 
-    hideQuestion() {
+    hideQuestion(data) {
         this.$questionHolder.hide();
         this.$gridHolder.show();
+        $('.player-card').removeClass('player-buzz-wait player-buzzed player-right player-wrong');
+
+        $('.player-card[data-player-id="'+data.player_id+'"]').addClass('player-buzzed');
     }
 
     updateUsers(data) {
@@ -58,6 +62,26 @@ class GridDisplay {
         })
 
         this.$playerHolder.find('[data-delete-me="true"]').remove();
+    }
+
+    startBuzz(data) {
+        console.log('starting buzz.');
+        $('.player-card:not(.card-red)').addClass('player-buzz-wait');
+    }
+
+    buzzAccepted(data) {
+        $('.player-card:not(.template)').removeClass('player-buzz-wait');
+        $('.player-card[data-player-id="'+data.player_id+'"]').addClass('player-buzzed');
+    }
+
+    answerRight() {
+        console.log('got right');
+        $('.player-buzzed').addClass('player-right').removeClass('player-buzzed');
+    }
+
+    answerWrong() {
+        console.log('got wrong');
+        $('.player-buzzed').addClass('player-wrong').removeClass('player-buzzed');
     }
 
     _createOrUpdatePlayer(player) {

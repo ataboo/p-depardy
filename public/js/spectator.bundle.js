@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10324,36 +10324,45 @@ return jQuery;
 
 
 /***/ }),
-/* 1 */,
+/* 1 */
+/***/ (function(module, exports) {
+
+function _initSocket(path, handleEvent) {
+    let socket = new WebSocket(path);
+
+    socket.onmessage = raw => {
+        let data = JSON.parse(raw.data);
+        if (data.event) {
+            console.log(data.event);
+            handleEvent(data.event, data.data);
+        }
+    };
+
+    return socket;
+}
+
+module.exports = {
+    initSocket: _initSocket
+};
+
+/***/ }),
 /* 2 */,
-/* 3 */
+/* 3 */,
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
 
 (function () {
-    const GridDisplay = __webpack_require__(4);
+    const ClientHandler = __webpack_require__(1);
+    const GridDisplay = __webpack_require__(5);
 
     let gridDisplay;
 
     $(document).ready(function () {
-        initSocket();
-    });
-
-    function initSocket() {
         gridDisplay = new GridDisplay();
-
-        //TODO: generate routes in ejs.
-        let socket = new WebSocket('ws://localhost:3000/spectator');
-
-        socket.onmessage = raw => {
-            let data = JSON.parse(raw.data);
-            if (data.event) {
-                console.log(data.event);
-                handleEvent(data.event, data.data);
-            }
-        };
-    }
+        ClientHandler.initSocket('ws://localhost:3000/spectator', handleEvent);
+    });
 
     function handleEvent(event, data) {
         switch (event) {
@@ -10371,10 +10380,22 @@ window.$ = __webpack_require__(0);
                 gridDisplay.showAnswer(data);
                 break;
             case 'picking':
-                gridDisplay.hideQuestion();
+                gridDisplay.hideQuestion(data);
                 break;
             case 'update-users':
                 gridDisplay.updateUsers(data);
+                break;
+            case 'start-buzzing':
+                gridDisplay.startBuzz(data);
+                break;
+            case 'buzz-accepted':
+                gridDisplay.buzzAccepted(data);
+                break;
+            case 'right-answer':
+                gridDisplay.answerRight(data);
+                break;
+            case 'wrong-answer':
+                gridDisplay.answerWrong(data);
                 break;
             default:
                 console.error('Event: ' + event + ' is not supported.');
@@ -10383,7 +10404,7 @@ window.$ = __webpack_require__(0);
 })();
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
 class GridDisplay {
@@ -10420,6 +10441,7 @@ class GridDisplay {
     }
 
     showQuestion(data) {
+        $('.player-buzzed').removeClass('player-buzzed');
         this.$gridHolder.hide();
         $('.square-hover').html('');
         this.$questionContent.html(data.question);
@@ -10433,9 +10455,12 @@ class GridDisplay {
         this.$questionHolder.show();
     }
 
-    hideQuestion() {
+    hideQuestion(data) {
         this.$questionHolder.hide();
         this.$gridHolder.show();
+        $('.player-card').removeClass('player-buzz-wait player-buzzed player-right player-wrong');
+
+        $('.player-card[data-player-id="' + data.player_id + '"]').addClass('player-buzzed');
     }
 
     updateUsers(data) {
@@ -10446,6 +10471,26 @@ class GridDisplay {
         });
 
         this.$playerHolder.find('[data-delete-me="true"]').remove();
+    }
+
+    startBuzz(data) {
+        console.log('starting buzz.');
+        $('.player-card:not(.card-red)').addClass('player-buzz-wait');
+    }
+
+    buzzAccepted(data) {
+        $('.player-card:not(.template)').removeClass('player-buzz-wait');
+        $('.player-card[data-player-id="' + data.player_id + '"]').addClass('player-buzzed');
+    }
+
+    answerRight() {
+        console.log('got right');
+        $('.player-buzzed').addClass('player-right').removeClass('player-buzzed');
+    }
+
+    answerWrong() {
+        console.log('got wrong');
+        $('.player-buzzed').addClass('player-wrong').removeClass('player-buzzed');
     }
 
     _createOrUpdatePlayer(player) {

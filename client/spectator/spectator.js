@@ -1,28 +1,15 @@
 window.$ = require('jquery');
 
 (function() {
+    const ClientHandler = require('./../client-handler');
     const GridDisplay = require('./grid-display');
 
     let gridDisplay;
 
     $(document).ready(function () {
-        initSocket();
-    });
-
-    function initSocket() {
         gridDisplay = new GridDisplay();
-
-        //TODO: generate routes in ejs.
-        let socket = new WebSocket('ws://localhost:3000/spectator');
-
-        socket.onmessage = (raw) => {
-            let data = JSON.parse(raw.data);
-            if (data.event) {
-                console.log(data.event);
-                handleEvent(data.event, data.data);
-            }
-        };
-    }
+        ClientHandler.initSocket('ws://localhost:3000/spectator', handleEvent);
+    });
 
     function handleEvent(event, data) {
         switch(event) {
@@ -40,10 +27,22 @@ window.$ = require('jquery');
                 gridDisplay.showAnswer(data);
                 break;
             case 'picking':
-                gridDisplay.hideQuestion();
+                gridDisplay.hideQuestion(data);
                 break;
             case 'update-users':
                 gridDisplay.updateUsers(data);
+                break;
+            case 'start-buzzing':
+                gridDisplay.startBuzz(data);
+                break;
+            case 'buzz-accepted':
+                gridDisplay.buzzAccepted(data);
+                break;
+            case 'right-answer':
+                gridDisplay.answerRight(data);
+                break;
+            case 'wrong-answer':
+                gridDisplay.answerWrong(data);
                 break;
             default:
                 console.error('Event: '+event+' is not supported.');

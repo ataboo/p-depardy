@@ -9,17 +9,15 @@ module.exports = function(gameLoop) {
         onHost(event, user, data) {
             if (event === 'right-answer') {
                 this.gameLoop.awardScoreToCurrent();
+                this.gameLoop.emitAll('right-answer', { player_id: gameLoop.gameData.checkingContestant });
                 this.wrapUp();
                 return;
             }
 
             if (event === 'wrong-answer') {
-                let unbuzzed = gameLoop.gameData.playerType('contestant').filter(function(user) {
-                    return !user.buzzed
-                });
-
+                this.gameLoop.emitAll('wrong-answer', { player_id: gameLoop.gameData.checkingContestant });
+                let unbuzzed = gameLoop.unbuzzedPlayers();
                 if (unbuzzed.length) {
-                    this.gameLoop.emit('start-buzzing', unbuzzed, '');
                     this.gameLoop.setStage('buzzing');
                 } else {
                     this.wrapUp();

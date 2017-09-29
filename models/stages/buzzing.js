@@ -6,12 +6,17 @@ module.exports = function(gameLoop) {
             console.log('Waiting for Buzz.');
         }
 
+        sync() {
+            this.gameLoop.emit('start-buzzing', gameLoop.unbuzzedPlayers(), '');
+            this.gameLoop.emit('start-buzzing', gameLoop.gameData.playerType('spectator'), '');
+        }
+
         onContestant(event, user, data) {
             if(event === 'buzzed') {
                 let contestant = this.gameLoop.gameData.player(user.id);
                 if (contestant && !contestant.buzzed) {
                     this.gameLoop.gameData.checkingContestant = contestant.id;
-                    this.gameLoop.emitAll('buzz-accepted', {user_id: contestant.id});
+                    this.gameLoop.emitAll('buzz-accepted', {player_id: contestant.id});
                     contestant.buzzed = true;
                     this.gameLoop.setStage('checking');
                 }

@@ -116,7 +116,7 @@ module.exports = function() {
               this.sendGrid(player);
           }
       })
-
+      player.emit('check-in', {player_id: player.id});
       this.gameLoop.currentStage().sync();
 
       return this.player(player.id);
