@@ -1,0 +1,192 @@
+@import '_mixins';
+
+$gold: #fdce5b;
+$green: #2ca042;
+$blue: midnightblue;
+$red: #fd4141;
+
+body {
+    background-color: #d2d2d2
+}
+
+.jep-square {
+    background-color: $blue;
+    color: $gold;
+    font-size: 20px;
+    text-align: center;
+    font-family: helvetica;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+    padding: 4px;
+    width: 110px;
+    height: 80px;
+    font-weight: bolder;
+    border-radius: 4px;
+    box-shadow: 2px 2px 3px black;
+}
+
+.jep-column {
+    align-content: space-around;
+}
+
+.grid-holder {
+    height: 34rem;
+    flex-basis: auto; /* default value */
+    flex-grow: 1;
+}
+
+.square-hover {
+    outline: solid 5px $gold;
+    color: white;
+}
+
+.fullscreen-question {
+    font-size: 300%;
+    background-color: $blue;
+    color: white;
+    text-align: center;
+    width: 100%;
+    height: 34rem;
+}
+
+.category {
+    font-size: 14px;
+    margin-bottom: 16px
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.flex-row {
+    display: flex;
+    justify-content: center;
+}
+
+.content {
+}
+
+.player-card {
+    color: $gold;
+    background-color: #383634;
+    border-radius: 4px;
+    text-align: center;
+    padding: 8px;
+    margin: 20px 4px;
+    box-shadow: 2px 2px 3px black;
+}
+
+.player-buzz-wait {
+    background-color: $blue;
+}
+
+.player-buzzed {
+    background-color: $gold;
+    color: black;
+}
+
+.player-right {
+    color: $gold;
+    background-color: $green;
+}
+
+.pick-buttons {
+    & .fa {
+        vertical-align: middle;
+        font-size: 23vmin;
+    }
+
+    .fa-chevron-right, .fa-chevron-left {
+        padding-top: 2vmin;
+    }
+
+    & .socket-button {
+        @include bigDumbButton($gold, white);
+    }
+}
+
+.buzzer {
+    color: gray;
+
+    & i {
+        font-size: 50vmin;
+    }
+}
+
+.buzzer-ready {
+    @include bigDumbButton($gold, white);
+}
+
+.buzzer-buzzed {
+    color: $blue;
+}
+
+.buzzer-right {
+    color: $green;
+}
+
+.buzzer-wrong {
+    color: $red;
+}
+
+.player-wrong {
+    color: white;
+    background-color: $red;
+}
+
+.player-name {
+
+}
+
+.player-score {
+    font-size: 20px;
+}
+
+.host-button {
+    & i {
+        font-size: 50vmin;
+    }
+}
+
+.start-pick {
+    @extend .host-button;
+    @include bigDumbButton($gold, white);
+}
+
+.start-buzz {
+    @extend .host-button;
+    @include bigDumbButton($blue, white);
+}
+
+.right-answer {
+    font-size: 25vmin;
+    @include bigDumbButton($green, white);
+}
+
+.wrong-answer {
+    @include bigDumbButton($red, white);
+    font-size: 25vmin;
+}
+
+.give-up {
+    @extend .host-button;
+    @include bigDumbButton($red, white);
+}
+
+.answer-holder {
+    div & {
+        background-color: white;
+        box-shadow: 0.5vmin 0.5vmin 0.5vmin gray;
+        border-radius: 1vmin;
+        padding: 1rem;
+    }
+
+    & p {
+        font-weight: bold;
+        text-align: center;
+    }
+}

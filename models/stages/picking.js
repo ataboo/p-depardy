@@ -1,5 +1,6 @@
 module.exports = function(gameLoop) {
     let Stage = require('./stage')();
+    let pickTimeout = undefined;
 
     class Picking extends Stage {
         entry() {
@@ -7,14 +8,36 @@ module.exports = function(gameLoop) {
 
             this.picker = this.gameLoop.nextPicker();
 
+            if (!this.picker) {
+                console.error('Failed to get next picker.');
+                this.gameLoop.setStage('pre_round');
+                return;
+            }
+
             this.pickSpot = this.gameLoop.gameData.activeQuestion;
 
             if (typeof this.pickSpot === 'undefined') {
                 this.pickSpot = [0, 0];
             }
             this.size = this.gameLoop.gameData.gridSize();
+        }
 
-            this.gameLoop.emitAll('picking', this.picker.id);
+        sync() {
+            let pickerInvalid = !this.picker || this.picker.type != Stage.Player.CONTESTANT || this.picker.disabled;
+
+            if (pickerInvalid) {
+                if (!this.pickTimeout) {
+                    this.pickTimeout = setTimeout(() => {
+                        this.entry();
+                    });
+                }
+            } else {
+                if (this.pickTimeout) {
+                    clearTimeout(this.pickTimeout);
+                }
+            }
+
+            this.gameLoop.emitAll('picking', { player_id: this.picker.id });
             this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
         }
 
@@ -37,13 +60,13 @@ module.exports = function(gameLoop) {
 
         _movePick(data) {
             switch (data) {
-                case 'up':
+                case 'down':
                     this.pickSpot[1]++;
                     break;
                 case 'right':
                     this.pickSpot[0]++;
                     break;
-                case 'down':
+                case 'up':
                     this.pickSpot[1]--;
                     break;
                 case 'left':
@@ -59,7 +82,6 @@ module.exports = function(gameLoop) {
             console.dir(this.pickSpot);
 
             this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
-            // this.gameLoop.emitAll('outgoing', this.pickSpot);
         }
 
         _lockPick() {

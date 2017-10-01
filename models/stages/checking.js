@@ -6,30 +6,33 @@ module.exports = function(gameLoop) {
             console.log('Checking answer.');
         }
 
+        sync() {
+            this.gameLoop.emitHost('checking-answer', {player: gameLoop.checkingPlayerPublic(), grid_square: gameLoop.gameData.currentGridSquare()})
+            this.gameLoop.emitAll('buzz-accepted', {player_id: gameLoop.gameData.checkingContestant, grid_square: gameLoop.gameData.currentGridSquare().public()});
+        }
+
         onHost(event, user, data) {
             if (event === 'right-answer') {
-                let contestant = this.gameLoop.gameData.findContestants(this.gameLoop.gameData.checkingContestant);
-                console.log('contestant: '+contestant);
-
-                contestant.score += this.gameLoop.gameData.currentGridSquare().value;
-                this.gameLoop.gameData.lastPicker = contestant.id;
-                this.gameLoop.emitAll('update-users', this.gameLoop.contestants);
-                this.gameLoop.setStage('show_answer');
+                this.gameLoop.awardScoreToCurrent();
+                this.gameLoop.emitAll('right-answer', { player_id: gameLoop.gameData.checkingContestant });
+                this.wrapUp();
                 return;
             }
 
             if (event === 'wrong-answer') {
-                let unbuzzed = Object.values(this.gameLoop.gameData.contestants).filter(function(user) {
-                    return !user.buzzed
-                });
-
+                this.gameLoop.emitAll('wrong-answer', { player_id: gameLoop.gameData.checkingContestant });
+                let unbuzzed = gameLoop.unbuzzedPlayers();
                 if (unbuzzed.length) {
-                    this.gameLoop.emit('start-buzzing', unbuzzed, '');
                     this.gameLoop.setStage('buzzing');
                 } else {
-                    this.gameLoop.setStage('show_answer');
+                    this.wrapUp();
                 }
             }
+        }
+
+        wrapUp() {
+            this.gameLoop.syncUsers();
+            this.gameLoop.setStage('show_answer');
         }
     }
 

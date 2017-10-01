@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10325,29 +10325,212 @@ return jQuery;
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports) {
+
+function _initSocket(path, handleEvent) {
+    let socket = new WebSocket(path);
+
+    socket.onmessage = raw => {
+        let data = JSON.parse(raw.data);
+        if (data.event) {
+            console.log(data.event);
+            handleEvent(data.event, data.data);
+        }
+    };
+
+    return socket;
+}
+
+module.exports = {
+    initSocket: _initSocket
+};
+
+/***/ }),
+/* 2 */,
+/* 3 */,
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
 
-$(document).ready(function () {
-    initSocket();
-});
+(function () {
+    const ClientHandler = __webpack_require__(1);
+    const GridDisplay = __webpack_require__(5);
 
-function initSocket() {
-  window.WebSocket = window.WebSocket || window.MozWebSocket;
+    let gridDisplay;
 
-  let socket = new WebSocket('ws://localhost:3000/host');
-
-    $('.socket-button').on('click', function() {
-        let event = $(this).data('event');
-        let data = $(this).data('event-data');
-
-        console.log('emitting: '+event+' with data: '+data);
-
-        socket.send(JSON.stringify({event: event, data: data}));
+    $(document).ready(function () {
+        gridDisplay = new GridDisplay();
+        ClientHandler.initSocket('ws://localhost:3000/spectator', handleEvent);
     });
+
+    function handleEvent(event, data) {
+        switch (event) {
+            case 'init-grid':
+                gridDisplay.renderGrid(data.grid);
+                gridDisplay.updateUsers(data);
+                break;
+            case 'highlight-square':
+                gridDisplay.highlightSquare(data);
+                break;
+            case 'show-question':
+                gridDisplay.showQuestion(data);
+                break;
+            case 'show-answer':
+                gridDisplay.showAnswer(data);
+                break;
+            case 'picking':
+                gridDisplay.hideQuestion(data);
+                break;
+            case 'update-users':
+                gridDisplay.updateUsers(data);
+                break;
+            case 'start-buzzing':
+                gridDisplay.startBuzz(data);
+                break;
+            case 'buzz-accepted':
+                gridDisplay.buzzAccepted(data);
+                break;
+            case 'right-answer':
+                gridDisplay.answerRight(data);
+                break;
+            case 'wrong-answer':
+                gridDisplay.answerWrong(data);
+                break;
+            default:
+                console.error('Event: ' + event + ' is not supported.');
+        }
+    }
+})();
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+class GridDisplay {
+    constructor() {
+        this.$gridHolder = $('.grid-holder');
+        this.$questionHolder = $('.fullscreen-question');
+        this.$questionContent = $('.question-content');
+        this.$playerHolder = $('.player-holder');
+    }
+
+    renderGrid(data) {
+        this.$gridHolder.html('');
+
+        $(data.gridSquares).each((x, gridSquare) => {
+            let $column = GridDisplay._makeColumn().appendTo(this.$gridHolder);
+            let $category = $column.find('.jep-square');
+            $category.html(data.categories[x]);
+            $(gridSquare).each(function (y, value) {
+                let dispVal = value > 0 ? '$' + value : '';
+                let $newSquare = $category.clone().removeClass('category').appendTo($column).html(dispVal);
+                $newSquare.attr('data-grid-x', x).attr('data-grid-y', y);
+            });
+        });
+
+        $('.jep-column:not(.template)').show();
+
+        if (!this.$questionHolder.is(':visible')) {
+            this.$gridHolder.show();
+        }
+    }
+
+    highlightSquare(data) {
+        $('.jep-square.square-hover').removeClass('square-hover');
+        GridDisplay._squareForGrid(data).addClass('square-hover');
+    }
+
+    showQuestion(data, resetPlayers = true) {
+        if (resetPlayers) {
+            $('.player-buzzed').removeClass('player-buzzed');
+        }
+        this.$gridHolder.hide();
+        $('.square-hover').html('');
+        this.$questionContent.html(data.grid_square.question);
+        this.$questionHolder.show();
+    }
+
+    showAnswer(data) {
+        console.log('Showing answer!');
+        console.log(data);
+
+        this.$gridHolder.hide();
+        this.$questionContent.html(data.grid_square.answer);
+        this.$questionHolder.show();
+    }
+
+    hideQuestion(data) {
+        this.$questionHolder.hide();
+        this.$gridHolder.show();
+        $('.player-card').removeClass('player-buzz-wait player-buzzed player-right player-wrong');
+
+        $('.player-card[data-player-id="' + data.player_id + '"]').addClass('player-buzzed');
+    }
+
+    updateUsers(data) {
+        this.$playerHolder.children().not('.template').attr('data-delete-me', true);
+
+        $(data.players).each((index, player) => {
+            this._createOrUpdatePlayer(player);
+        });
+
+        this.$playerHolder.find('[data-delete-me="true"]').remove();
+    }
+
+    startBuzz(data) {
+        console.log('starting buzz.');
+        $('.player-card:not(.card-red)').addClass('player-buzz-wait');
+
+        if (this.$questionHolder.is(':hidden')) {
+            this.showQuestion(data, false);
+        }
+    }
+
+    buzzAccepted(data) {
+        $('.player-card:not(.template)').removeClass('player-buzz-wait');
+        $('.player-card[data-player-id="' + data.player_id + '"]').addClass('player-buzzed');
+
+        if (this.$questionHolder.is(':hidden')) {
+            this.showQuestion(data, false);
+        }
+    }
+
+    answerRight() {
+        console.log('got right');
+        $('.player-buzzed').addClass('player-right').removeClass('player-buzzed');
+    }
+
+    answerWrong() {
+        console.log('got wrong');
+        $('.player-buzzed').addClass('player-wrong').removeClass('player-buzzed');
+    }
+
+    _createOrUpdatePlayer(player) {
+        let $existing = this.$playerHolder.find('[data-player-id="' + player.id + '"]');
+        if ($existing.length) {
+            $existing.find('.player-score').html('$' + player.score);
+            $existing.attr('data-delete-me', false);
+            return;
+        }
+
+        let $template = this.$playerHolder.find('.template').clone().removeClass('template').appendTo(this.$playerHolder);
+
+        $template.attr('data-player-id', player.id);
+        $template.find('.player-name').html(player.name);
+        $template.find('.player-score').html('$' + player.score);
+        $template.show();
+    }
+
+    static _makeColumn() {
+        return $('.jep-column.template').clone().removeClass('template');
+    }
+    static _squareForGrid(grid) {
+        return $('.jep-square[data-grid-x="' + grid[0] + '"][data-grid-y="' + grid[1] + '"]');
+    }
 }
 
+module.exports = GridDisplay;
 
 /***/ })
 /******/ ]);

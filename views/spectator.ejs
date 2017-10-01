@@ -1,47 +1,30 @@
 <% include partials/header %>
 
-<style>
-    .jep-square {
-        background-color: midnightblue;
-        color: white;
-        padding: 2rem;
-        margin: 1rem;
-        text-align: center;
-        font-family: monospace;
-        font-size: 200%;
-    }
+<%- include('partials/menu_banner.ejs', {role: "Spectator"}) %>
+<div class="col-xs-12 row" style="overflow-x:auto;">
+    <div class="flex-row grid-holder" style="display: none">
+    <!--holds grid-->
+    </div>
 
-    .jep-column {
-        display: inline-flex;
-        justify-content: center;
-        align-content: space-around;
-        flex-direction: column
-    }
+    <div class="flex-col jep-column template" style="display: none">
+        <div class="jep-square category">Catagory</div>
+    </div>
 
-    .jep-row {
-        width: 100%;
-        display: inline-flex;
-        justify-content: center;
-        align-content: center;
-        flex-direction: row
-    }
-
-    .square-hover {
-        outline: dashed 5px orangered;
-    }
-
-</style>
-
-<h1>Logged in as Spectator <%= user.name %></h1>
-
-<div class="jep-row" style="display: none">
-
+    <div class="fullscreen-question flex-col" style="display: none">
+        <div class="question-content" style="margin: 3rem"></div>
+    </div>
 </div>
-
-<div class="jep-column template" style="display: none">
-    <div class="jep-square">Catagory</div>
+<div class="col-xs-12 row" style="overflow-x: auto;">
+    <div class="flex-row w-100 player-holder" style="justify-content: center; align-content: center;">
+        <div class="player-card template" style="display: none">
+            <div class="player-name">
+            </div>
+            <div class="player-score">
+            </div>
+        </div>
+    </div>
 </div>
 
 
-<script src="spectator.bundle.js"></script>
+<script src="js/spectator.bundle.js"></script>
 <% include partials/footer %>

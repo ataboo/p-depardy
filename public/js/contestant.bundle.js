@@ -10324,66 +10324,145 @@ return jQuery;
 
 
 /***/ }),
-/* 1 */,
+/* 1 */
+/***/ (function(module, exports) {
+
+function _initSocket(path, handleEvent) {
+    let socket = new WebSocket(path);
+
+    socket.onmessage = raw => {
+        let data = JSON.parse(raw.data);
+        if (data.event) {
+            console.log(data.event);
+            handleEvent(data.event, data.data);
+        }
+    };
+
+    return socket;
+}
+
+module.exports = {
+    initSocket: _initSocket
+};
+
+/***/ }),
 /* 2 */,
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 window.$ = __webpack_require__(0);
 
-(function() {
+(function () {
+    const ClientHandler = __webpack_require__(1);
+    let socket;
+    let myId;
+    let $buzzer;
+
+    $.fn.toggleBell = function (toggle) {
+        this.find('i.fa').toggleClass('fa-bell-slash', !toggle).toggleClass('fa-bell', toggle);
+        return this;
+    };
+
     $(document).ready(function () {
-        initSocket();
+        socket = ClientHandler.initSocket('ws://localhost:3000/contestant', handleEvent);
+
+        initButtons();
     });
 
-    function initSocket() {
-        //TODO: generate routes in ejs.
-        let socket = new WebSocket('ws://localhost:3000/spectator');
+    function initButtons() {
+        $('.socket-button').on('click', function () {
+            let event = $(this).data('event');
+            let data = $(this).data('event-data');
 
-        socket.onmessage = (raw) => {
-            console.log(raw);
+            console.log('emitting: ' + event + ' with data: ' + data);
 
-            let data = JSON.parse(raw.data);
-            if (data.event) {
-                handleEvent(data.event, data.data);
+            socket.send(JSON.stringify({ event: event, data: data }));
+        });
+
+        $buzzer = $('.buzzer');
+
+        $buzzer.on('click', function () {
+            if ($(this).hasClass('buzzer-ready')) {
+                $buzzer.prop('disabled', true);
+                socket.send(JSON.stringify({ event: 'buzzed', data: { player_id: myId } }));
+                console.log('Sending buzz!');
             }
-        };
+
+            return false;
+        });
     }
 
     function handleEvent(event, data) {
-        switch(event) {
-            case 'init-grid':
-                renderGrid(data);
+        switch (event) {
+            case 'picking':
+                showPick();
                 break;
-            case 'highlight-square':
-                highlightSquare(data);
+            case 'show-question':
+                showQuestion(data);
                 break;
-            default:
-                console.error('Event: '+event+' is not supported.');
+            case 'show-answer':
+                showAnswer();
+                break;
+            case 'start-buzzing':
+                startBuzz();
+                break;
+            case 'buzz-accepted':
+                buzzAccepted(data);
+                break;
+            case 'check-in':
+                checkIn(data);
+                break;
+            case 'wrong-answer':
+                answerWrong();
+                break;
+            case 'right-answer':
+                answerRight();
+                break;
         }
     }
 
-    function renderGrid(data) {
-        $(data.gridSquares).each(function(x, gridSquare) {
-            let $column = makeColumn();
-            let $category = $column.find('.jep-square');
-            $category.html(data.catagories[x]);
-            $(gridSquare).each(function(y, value) {
-                let $square = $category.clone().appendTo($column).html(value);
-                $square.attr('data-grid-x', x).attr('data-grid-y', y);
-            });
-        });
+    function showPick() {
+        $('.buzz-holder').hide();
 
-        $('.jep-column:not(.template), .jep-row').show();
+        console.log('showing pick');
+        $('.pick-buttons').show();
     }
 
-    function makeColumn(category) {
-        return $('.jep-column.template').clone().appendTo($('.jep-row')).removeClass('template');
+    function showQuestion(data) {
+        $buzzer.toggleBell(false).removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong').prop('disabled', false).show();
+
+        $('.pick-buttons').hide();
+        $('.buzz-holder').show();
     }
 
-    function highlightSquare(data) {
-        $('.jep-square.square-hover').removeClass('square-hover');
-        $('.jep-square[data-grid-x="'+data[0]+'"][data-grid-y="'+data[1]+'"]').addClass('square-hover');
+    function startBuzz() {
+        $('.buzz-holder').show();
+        $buzzer.addClass('buzzer-ready').toggleBell(true);
+    }
+
+    function buzzAccepted(data) {
+        $buzzer.toggleBell(true).removeClass('buzzer-ready').prop('disabled', false);
+        if (data.player_id == myId) {
+            $buzzer.addClass('buzzer-buzzed');
+        } else {
+            $buzzer.toggleBell(false);
+        }
+    }
+
+    function checkIn(data) {
+        myId = data.player_id;
+    }
+
+    function answerWrong() {
+        $buzzer.toggleBell(false).removeClass('buzzer-buzzed').addClass('buzzer-wrong');
+    }
+
+    function showAnswer() {
+        $buzzer.toggleBell(false).removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong');
+    }
+
+    function answerRight() {
+        $buzzer.removeClass('buzzer-buzzed').addClass('buzzer-right');
     }
 })();
 

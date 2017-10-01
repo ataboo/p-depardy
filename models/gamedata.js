@@ -1,17 +1,19 @@
 module.exports = function() {
   let GridSquare = require('./gridsquare')();
-  const CATEGORIES = ['First One', 'Second One'];
-  const VALUES = [100, 200, 300, 400, 500];
+  let Player = require('./player');
+  const CATEGORIES = ['First One Has a Longer title', 'Second One has a longer title', 'Third One', 'Fourth One has a longer title', 'Fifth One', 'Sixth One'];
+  const VALUES = [200, 400, 600, 800, 1000];
 
   class GameData {
-    constructor() {
-      this.contestants = {};
-      this.spectators = {};
+    constructor(gameLoop) {
+      this.players = {};
       this.stageName = 'entry';
       this.gridSquares = [];
       this.locked = false;
       this.activeQuestion = [0, 0];
-      this.lasPicker = undefined;
+      this.lastPicker = undefined;
+      this.gameLoop = gameLoop;
+      this.playerSummaries = undefined;
     }
 
     init(done) {
@@ -33,16 +35,6 @@ module.exports = function() {
       done();
     }
 
-    allUsers() {
-      let users = Object.assign({}, this.contestants, this.spectators);
-
-      if (this.host) {
-          users[this.host.id] = this.host;
-      }
-
-      return users;
-    }
-
     spectatorGrid() {
       let outGrid = [];
 
@@ -54,41 +46,102 @@ module.exports = function() {
           }
       }
 
-
       return {
-        catagories: CATEGORIES,
+        categories: CATEGORIES,
         gridSquares: outGrid
       };
     }
 
-    hostId() {
-      return this.host ? this.host.id : undefined;
+    player(userId) {
+        return this.players[userId];
     }
 
-    getHost() {
-      return this.host;
+    awardCurrentQuestion() {
+        let player = this.players[this.checkingContestant];
+        let gridSquare = this.currentGridSquare();
+
+        if (player && gridSquare) {
+            player.score += gridSquare.value;
+            this.updatePlayerSummaries();
+        } else {
+            console.error('Cannot find player with id: '+playerId);
+        }
     }
 
-    findSpectator(userId) {
-      return this.spectators[userId];
+    addHost(user, done) {
+        if (this.locked) {
+            console.error('Cant add contestant when game is locked.');
+            done(false);
+            return;
+        }
+        let player = new Player(user, Player.HOST, () => {
+            this.addPlayer(player);
+            done(true);
+        })
     }
 
-    findContestants(userId) {
-      return this.contestants[userId];
+    addContestant(user, done) {
+        if (this.locked) {
+            console.error('Cant add contestant when game is locked.');
+            done(false);
+            return;
+        }
+
+        let player = new Player(user, Player.CONTESTANT, () => {
+            this.addPlayer(player);
+            done(true);
+        })
     }
 
-    addHost(user) {
-      if (this.locked) {
-        console.error('Cant add host when game is locked.');
-        return;
-      }
-
-      if (this.findContestants(user.id)) {
-        this.contestants[user.id] = undefined;
-      }
-
-      this.host = user;
+    addSpectator(user, done) {
+        let player = new Player(user, Player.SPECTATOR, () => {
+            this.addPlayer(player);
+            done(true);
+        })
     }
+
+    addPlayer(player) {
+        let existingPlayer = this.player(player.id);
+        if (existingPlayer) {
+            existingPlayer.socket = player.socket;
+            existingPlayer.type = player.type;
+            existingPlayer.disabled = false;
+        } else {
+            this.players[player.id] = player;
+        }
+
+        this.updatePlayerSummaries();
+        this.syncGrid();
+
+        player.emit('check-in', {player_id: player.id});
+        this.gameLoop.currentStage().sync();
+
+        return this.player(player.id);
+    }
+
+    removePlayer(user) {
+        let existingPlayer = this.player(user.id);
+
+        if (existingPlayer) {
+            existingPlayer.disabled = true;
+            this.updatePlayerSummaries();
+            this.syncGrid();
+            this.gameLoop.currentStage().sync();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    updatePlayerSummaries() {
+        this.ready = this.playerType(Player.CONTESTANT).length > 0;
+
+        this.playerSummaries = this.playerType(Player.CONTESTANT, true).map((player) => {
+            return player.public();
+        });
+    }
+
 
     gridSize() {
       return [this.gridSquares.length, this.gridSquares[0].length];
@@ -100,36 +153,76 @@ module.exports = function() {
             return undefined;
         }
 
-        console.log('Active Question is: ' + this.activeQuestion);
-
         return this.gridSquares[this.activeQuestion[0]][this.activeQuestion[1]];
     };
 
-    addContestant(user) {
-      if (this.locked) {
-        console.error('Cant add contestant when game is locked.');
-        return;
-      }
+    syncGrid(player = undefined) {
+        let grid = this.spectatorGrid();
+        let syncData = {grid: grid, players: this.playerSummaries};
 
-      if (host && host.id === user.id) {
-        host = undefined;
-      }
-
-      this.contestants[user.id] = user;
+        if (player) {
+            player.emit('init-grid', syncData);
+        } else {
+            this.gameLoop.emitSpectators('init-grid', syncData)
+        }
     }
 
-    addSpectator(user) {
-      this.spectators[user.id] = user;
+    enabledPlayers() {
+        return this.filterPlayers((player) => {
+            return !player.disabled;
+        })
     }
 
-    getUserType(userId) {
-      if (this.host && this.host.id === userId) {
-        return 'host';
+    eachPlayer(callback) {
+      this.enabledPlayers().forEach((player) => {
+          callback(this.players[player.id]);
+      });
+    }
+
+    mapPlayer(callback) {
+      let mapped = [];
+
+      for(let id in this.players) {
+        if (this.players.hasOwnProperty(id)) {
+          mapped.push(callback(this.player(id)));
+        }
       }
-      if (this.contestants.hasOwnProperty(userId)) {
-        return 'contestant';
+
+      return mapped;
+    }
+
+    playerType(type, disabled = false) {
+        return this.filterPlayers((player) => {
+            return player.type === type && (disabled || !player.disabled)
+        });
+    }
+
+    filterPlayers(keep, array = true) {
+        let filtered = Object.values(this.players)
+            .filter(keep);
+
+        if (array) {
+            return filtered;
+        }
+
+        return filtered.reduce((players, player) => {
+            players[player.id] = this.players[id];
+            return players;
+        });
+    }
+
+    nextPicker() {
+      let contestants = this.playerType(Player.CONTESTANT);
+      if (!this.lastPicker || !this.player(this.lastPicker)) {
+        if (contestants.length) {
+          this.lastPicker = contestants[Math.floor(contestants.length*Math.random())].id;
+        } else {
+          return false;
+        }
+
       }
-      return 'spectator';
+
+      return this.player(this.lastPicker);
     }
   }
 

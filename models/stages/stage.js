@@ -8,6 +8,10 @@ module.exports = function() {
             //
         }
 
+        sync() {
+            //
+        }
+
         onContestant(event, user, data) {
             //
         }
@@ -16,6 +20,9 @@ module.exports = function() {
             //
         }
     }
+
+
+    Stage.Player = require('../player');
 
     return Stage;
 };

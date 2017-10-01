@@ -4,15 +4,15 @@ module.exports = function(gameLoop) {
     class Reading extends Stage {
         entry() {
             console.log('Reading entry.');
+        }
 
-            this.gameLoop.emitAll('show-question', this.gameLoop.gameData.currentGridSquare().public());
+        sync() {
+            this.gameLoop.emitAll('show-question', {grid_square: this.gameLoop.gameData.currentGridSquare().public()});
         }
 
         onHost(event, user, data) {
             if (event === 'start-buzz') {
-                for(let id of Object.keys(this.gameLoop.gameData.contestants)) {
-                    this.gameLoop.gameData.findContestants(id).buzzed = false;
-                }
+                this.gameLoop.resetBuzzing();
                 this.gameLoop.setStage('buzzing');
             }
         }

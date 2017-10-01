@@ -16,7 +16,7 @@ let saveGameLoop = require('./middleware/save-gameloop');
 const PORT = 3000;
 
 // Initialize redis client for user and session storage.
-let redisClient = redis.createClient({
+let redisClient = require('./middleware/global').redisClient = redis.createClient({
 	host: 'localhost',
 	port: 6379
 });

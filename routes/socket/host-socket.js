@@ -12,6 +12,7 @@ module.exports = function(ws, req) {
                 'start-buzz',
                 'right-answer',
                 'wrong-answer',
+                'give-up'
             ];
         }
 
