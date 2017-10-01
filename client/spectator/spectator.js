@@ -8,7 +8,7 @@ window.$ = require('jquery');
 
     $(document).ready(function () {
         gridDisplay = new GridDisplay();
-        ClientHandler.initSocket('ws://localhost:3000/spectator', handleEvent);
+        ClientHandler.initSocket(handleEvent);
     });
 
     function handleEvent(event, data) {

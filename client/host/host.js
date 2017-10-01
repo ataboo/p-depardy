@@ -8,7 +8,7 @@ window.$ = require('jquery');
     };
 
     $(document).ready(function () {
-        socket = ClientHandler.initSocket('ws://localhost:3000/host', handleEvent);
+        socket = ClientHandler.initSocket(handleEvent);
         initButtons();
     });
 

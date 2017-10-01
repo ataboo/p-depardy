@@ -10327,7 +10327,11 @@ return jQuery;
 /* 1 */
 /***/ (function(module, exports) {
 
-function _initSocket(path, handleEvent) {
+function _initSocket(handleEvent) {
+    const location = window.location;
+    let wsProt = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let path = wsProt + '//' + location.host + location.pathname;
+
     let socket = new WebSocket(path);
 
     socket.onmessage = raw => {
@@ -10359,7 +10363,7 @@ window.$ = __webpack_require__(0);
     };
 
     $(document).ready(function () {
-        socket = ClientHandler.initSocket('ws://localhost:3000/host', handleEvent);
+        socket = ClientHandler.initSocket(handleEvent);
         initButtons();
     });
 

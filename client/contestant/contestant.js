@@ -12,7 +12,7 @@ window.$ = require('jquery');
     }
 
     $(document).ready(function () {
-        socket = ClientHandler.initSocket('ws://localhost:3000/contestant', handleEvent);
+        socket = ClientHandler.initSocket(handleEvent);
 
         initButtons();
     });

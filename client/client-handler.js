@@ -1,4 +1,8 @@
-function _initSocket(path, handleEvent) {
+function _initSocket(handleEvent) {
+    const location = window.location;
+    let wsProt = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let path = wsProt + '//' + location.host + location.pathname;
+
     let socket = new WebSocket(path);
 
     socket.onmessage = (raw) => {
