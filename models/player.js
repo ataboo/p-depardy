@@ -17,6 +17,7 @@ class Player {
         this.id = user.id;
         this.type = type;
         this.buzzed = false;
+        this.disabled = false;
         this.score = 0;
     }
 
@@ -26,6 +27,17 @@ class Player {
             return;
         }
         this.socket.send(JSON.stringify({event: event, data: data}));
+    }
+
+    public() {
+        return {
+            id: this.id,
+            name: this.name,
+            email: this.email,
+            score: this.score,
+            disabled: this.disabled,
+            buzzed: this.buzzed
+        }
     }
 }
 

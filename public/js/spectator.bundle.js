@@ -10416,8 +10416,6 @@ class GridDisplay {
     }
 
     renderGrid(data) {
-        this.$questionHolder.hide();
-
         this.$gridHolder.html('');
 
         $(data.gridSquares).each((x, gridSquare) => {
@@ -10432,7 +10430,10 @@ class GridDisplay {
         });
 
         $('.jep-column:not(.template)').show();
-        this.$gridHolder.show();
+
+        if (!this.$questionHolder.is(':visible')) {
+            this.$gridHolder.show();
+        }
     }
 
     highlightSquare(data) {
@@ -10440,18 +10441,22 @@ class GridDisplay {
         GridDisplay._squareForGrid(data).addClass('square-hover');
     }
 
-    showQuestion(data) {
-        $('.player-buzzed').removeClass('player-buzzed');
+    showQuestion(data, resetPlayers = true) {
+        if (resetPlayers) {
+            $('.player-buzzed').removeClass('player-buzzed');
+        }
         this.$gridHolder.hide();
         $('.square-hover').html('');
-        this.$questionContent.html(data.question);
+        this.$questionContent.html(data.grid_square.question);
         this.$questionHolder.show();
-        console.log(data);
     }
 
     showAnswer(data) {
+        console.log('Showing answer!');
+        console.log(data);
+
         this.$gridHolder.hide();
-        this.$questionContent.html(data.answer);
+        this.$questionContent.html(data.grid_square.answer);
         this.$questionHolder.show();
     }
 
@@ -10476,11 +10481,19 @@ class GridDisplay {
     startBuzz(data) {
         console.log('starting buzz.');
         $('.player-card:not(.card-red)').addClass('player-buzz-wait');
+
+        if (this.$questionHolder.is(':hidden')) {
+            this.showQuestion(data, false);
+        }
     }
 
     buzzAccepted(data) {
         $('.player-card:not(.template)').removeClass('player-buzz-wait');
         $('.player-card[data-player-id="' + data.player_id + '"]').addClass('player-buzzed');
+
+        if (this.$questionHolder.is(':hidden')) {
+            this.showQuestion(data, false);
+        }
     }
 
     answerRight() {

@@ -1,5 +1,6 @@
 module.exports = function(gameLoop) {
     let Stage = require('./stage')();
+    let pickTimeout = undefined;
 
     class Picking extends Stage {
         entry() {
@@ -22,7 +23,20 @@ module.exports = function(gameLoop) {
         }
 
         sync() {
-            console.log('ran pick sync');
+            let pickerInvalid = !this.picker || this.picker.type != Stage.Player.CONTESTANT || this.picker.disabled;
+
+            if (pickerInvalid) {
+                if (!this.pickTimeout) {
+                    this.pickTimeout = setTimeout(() => {
+                        this.entry();
+                    });
+                }
+            } else {
+                if (this.pickTimeout) {
+                    clearTimeout(this.pickTimeout);
+                }
+            }
+
             this.gameLoop.emitAll('picking', { player_id: this.picker.id });
             this.gameLoop.emitSpectators('highlight-square', this.pickSpot);
         }

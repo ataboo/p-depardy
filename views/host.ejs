@@ -1,15 +1,25 @@
 <% include partials/header %>
 
-<h1>Logged in as Host <%= user.name %></h1>
-<button class="socket-button" data-event="start-pick">Start Pick</button>
-<button class="socket-button" data-event="start-buzz">Start Buzz</button>
-<button class="socket-button answer-button" data-event="right-answer">Right</button>
-<button class="socket-button answer-button" data-event="wrong-answer">Wrong</button>
-<button class="socket-button" data-event="reset">Reset</button>
+<%- include('partials/menu_banner.ejs', {role: "Host"}) %>
 
-<a href="/logout">Logout</a>
-
-<div id="message-box">Nothing</div>
-
+<div class="flex-row" style="align-content: middle">
+    <%- include('partials/host-button.ejs', { icon: "fa-question-circle-o", event: "start-pick" }) %>
+    <%- include('partials/host-button.ejs', { icon: "fa-bell", event: "start-buzz" }) %>
+    <%- include('partials/host-button.ejs', { icon: "fa-times", event: "give-up" }) %>
+</div>
+<div class="check-holder" style="display: none;">
+    <div class="answer-holder">
+        <div class="player-check">
+            loading...
+        </div>
+        <hr/>
+        <h4>Answer:</h4>
+        <p>This is the Answer</p>
+    </div>
+    <div class="flex-row mt-4" style="justify-content: space-around">
+        <%- include('partials/host-button.ejs', { icon: "fa-check", event: "right-answer", show: true }) %>
+        <%- include('partials/host-button.ejs', { icon: "fa-times", event: "wrong-answer", show: true }) %>
+    </div>
+</div>
 <script src="js/host.bundle.js"></script>
 <% include partials/footer %>

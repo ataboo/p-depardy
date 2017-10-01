@@ -21,5 +21,8 @@ module.exports = function() {
         }
     }
 
+
+    Stage.Player = require('../player');
+
     return Stage;
 };

@@ -7,7 +7,7 @@ module.exports = function(gameLoop) {
         }
 
         sync() {
-            this.gameLoop.emitAll('pre-start', null);
+            this.gameLoop.emitAll('pre-start', {ready: this.gameLoop.ready()});
         }
 
         onHost(event, data) {

@@ -49,7 +49,7 @@ module.exports = function (redisClient, socketIo) {
         };
 
         emitAll(event, data) {
-            this.emit(event, this.gameData.players, data);
+            this.emit(event, this.gameData.enabledPlayers(), data);
         };
 
         emitHost(event, data) {
@@ -68,6 +68,12 @@ module.exports = function (redisClient, socketIo) {
             this.emit(event, this.gameData.players[this.gameData.checkingContestant], data);
         }
 
+        checkingPlayerPublic() {
+            if (this.gameData.checkingContestant) {
+                return this.gameData.player(this.gameData.checkingContestant).public()
+            }
+        }
+
         setStage(stageName) {
             this.gameData.stageName = stageName;
             this.currentStage().entry();
@@ -79,9 +85,15 @@ module.exports = function (redisClient, socketIo) {
         };
 
         unbuzzedPlayers() {
-            return this.gameData.playerType('contestant').filter(function(user) {
-                return !user.buzzed
+            return this.gameData.filterPlayers((player) => {
+                console.log('Checking Player: ');
+                console.log(player.public());
+                return !player.buzzed && player.type == Player.CONTESTANT && !player.disabled;
             });
+        }
+
+        ready() {
+            return this.gameData.ready;
         }
 
         onHost(event, user, data) {
@@ -111,7 +123,6 @@ module.exports = function (redisClient, socketIo) {
         }
 
         syncUsers() {
-            console.dir(this.gameData.playerSummaries);
             this.emitSpectators('update-users', {players: this.gameData.playerSummaries});
         }
     }

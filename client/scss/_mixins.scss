@@ -1,0 +1,29 @@
+@mixin bigDumbButton ($backColor, $foreColor) {
+    &:focus {
+        outline: none !important;
+    }
+
+    &:active {
+        box-shadow: none;
+    }
+
+    &:hover {
+        background-color: lighten($backColor, 10%);
+        color: lighten($foreColor, 10%);
+    }
+
+    &:disabled {
+        background-color: desaturate($backColor, 70%);
+        color: darken($foreColor, 5%);
+        border-color: darken($foreColor, 5%);
+        box-shadow: none;
+    }
+
+    color: $foreColor;
+    border-radius: 2vmin;
+    margin: 1vmin;
+    background-color: $backColor;
+    border: solid $foreColor 4px;
+
+    box-shadow: 0.5vmin 0.5vmin 0.5vmin gray;
+}

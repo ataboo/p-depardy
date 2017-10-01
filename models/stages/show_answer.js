@@ -5,7 +5,10 @@ module.exports = function(gameLoop) {
         entry() {
             console.log('Showing Answer.');
             this.gameLoop.gameData.currentGridSquare().blank = true;
-            this.gameLoop.emitAll('show-answer', this.gameLoop.gameData.currentGridSquare());
+        }
+
+        sync() {
+            this.gameLoop.emitAll('show-answer', {grid_square: this.gameLoop.gameData.currentGridSquare(), ready: this.gameLoop.ready()});
         }
 
         onHost(event, user, data) {

@@ -7,7 +7,7 @@ module.exports = function(gameLoop) {
         }
 
         sync() {
-            this.gameLoop.emitAll('show-question', this.gameLoop.gameData.currentGridSquare().public());
+            this.gameLoop.emitAll('show-question', {grid_square: this.gameLoop.gameData.currentGridSquare().public()});
         }
 
         onHost(event, user, data) {

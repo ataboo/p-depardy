@@ -6,6 +6,11 @@ module.exports = function(gameLoop) {
             console.log('Checking answer.');
         }
 
+        sync() {
+            this.gameLoop.emitHost('checking-answer', {player: gameLoop.checkingPlayerPublic(), grid_square: gameLoop.gameData.currentGridSquare()})
+            this.gameLoop.emitAll('buzz-accepted', {player_id: gameLoop.gameData.checkingContestant, grid_square: gameLoop.gameData.currentGridSquare().public()});
+        }
+
         onHost(event, user, data) {
             if (event === 'right-answer') {
                 this.gameLoop.awardScoreToCurrent();

@@ -101,36 +101,32 @@ module.exports = function() {
     }
 
     addPlayer(player) {
-      let existingPlayer = this.player(player.id);
-      if (existingPlayer) {
-        existingPlayer.socket = player.socket;
-        existingPlayer.type = player.type;
-      } else {
-        this.players[player.id] = player;
-      }
+        let existingPlayer = this.player(player.id);
+        if (existingPlayer) {
+            existingPlayer.socket = player.socket;
+            existingPlayer.type = player.type;
+            existingPlayer.disabled = false;
+        } else {
+            this.players[player.id] = player;
+        }
 
-      console.log(player.name);
-      this.updatePlayerSummaries();
-      this.eachPlayer((player) => {
-          if (player.type == Player.SPECTATOR) {
-              this.sendGrid(player);
-          }
-      })
-      player.emit('check-in', {player_id: player.id});
-      this.gameLoop.currentStage().sync();
+        this.updatePlayerSummaries();
+        this.syncGrid();
 
-      return this.player(player.id);
+        player.emit('check-in', {player_id: player.id});
+        this.gameLoop.currentStage().sync();
+
+        return this.player(player.id);
     }
 
     removePlayer(user) {
-        if (this.player(user.id)) {
-            delete this.players[user.id];
+        let existingPlayer = this.player(user.id);
+
+        if (existingPlayer) {
+            existingPlayer.disabled = true;
             this.updatePlayerSummaries();
-            this.eachPlayer((player) => {
-                if (player.type == Player.SPECTATOR) {
-                    this.sendGrid(player);
-                }
-            })
+            this.syncGrid();
+            this.gameLoop.currentStage().sync();
 
             return true;
         }
@@ -139,12 +135,10 @@ module.exports = function() {
     }
 
     updatePlayerSummaries() {
-        this.playerSummaries = this.playerType(Player.CONTESTANT).map((player) => {
-            return {
-                id: player.id,
-                name: player.name,
-                score: player.score
-            };
+        this.ready = this.playerType(Player.CONTESTANT).length > 0;
+
+        this.playerSummaries = this.playerType(Player.CONTESTANT, true).map((player) => {
+            return player.public();
         });
     }
 
@@ -162,21 +156,27 @@ module.exports = function() {
         return this.gridSquares[this.activeQuestion[0]][this.activeQuestion[1]];
     };
 
-    sendGrid(player) {
-        console.log('send grid.');
-        console.dir(this.playerSummaries);
+    syncGrid(player = undefined) {
+        let grid = this.spectatorGrid();
+        let syncData = {grid: grid, players: this.playerSummaries};
 
-        player.socket.send(
-            JSON.stringify({event: 'init-grid', data: { grid: this.spectatorGrid(), players: this.playerSummaries } })
-        );
+        if (player) {
+            player.emit('init-grid', syncData);
+        } else {
+            this.gameLoop.emitSpectators('init-grid', syncData)
+        }
+    }
+
+    enabledPlayers() {
+        return this.filterPlayers((player) => {
+            return !player.disabled;
+        })
     }
 
     eachPlayer(callback) {
-      for(let id in this.players) {
-        if (this.players.hasOwnProperty(id)) {
-            callback(this.players[id]);
-        }
-      }
+      this.enabledPlayers().forEach((player) => {
+          callback(this.players[player.id]);
+      });
     }
 
     mapPlayer(callback) {
@@ -191,10 +191,24 @@ module.exports = function() {
       return mapped;
     }
 
-    playerType(type) {
-      return Object.values(this.players).filter(player => {
-        return player.type === type;
-      });
+    playerType(type, disabled = false) {
+        return this.filterPlayers((player) => {
+            return player.type === type && (disabled || !player.disabled)
+        });
+    }
+
+    filterPlayers(keep, array = true) {
+        let filtered = Object.values(this.players)
+            .filter(keep);
+
+        if (array) {
+            return filtered;
+        }
+
+        return filtered.reduce((players, player) => {
+            players[player.id] = this.players[id];
+            return players;
+        });
     }
 
     nextPicker() {

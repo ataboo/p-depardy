@@ -3,12 +3,12 @@ module.exports = function(gameLoop) {
 
     class Buzzing extends Stage {
         entry() {
-            console.log('Waiting for Buzz.');
         }
 
         sync() {
             this.gameLoop.emit('start-buzzing', gameLoop.unbuzzedPlayers(), '');
-            this.gameLoop.emit('start-buzzing', gameLoop.gameData.playerType('spectator'), '');
+            this.gameLoop.emitSpectators('start-buzzing', {grid_square: gameLoop.gameData.currentGridSquare().public()});
+            this.gameLoop.emitHost('start-buzzing');
         }
 
         onContestant(event, user, data) {
@@ -16,9 +16,12 @@ module.exports = function(gameLoop) {
                 let contestant = this.gameLoop.gameData.player(user.id);
                 if (contestant && !contestant.buzzed) {
                     this.gameLoop.gameData.checkingContestant = contestant.id;
-                    this.gameLoop.emitAll('buzz-accepted', {player_id: contestant.id});
+
                     contestant.buzzed = true;
                     this.gameLoop.setStage('checking');
+                } else {
+                    console.log('Fail buzz: ');
+                    console.log(contestant.public());
                 }
             }
         }

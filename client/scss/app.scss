@@ -1,10 +1,17 @@
+@import '_mixins';
+
+$gold: #fdce5b;
+$green: #2ca042;
+$blue: midnightblue;
+$red: #fd4141;
+
 body {
     background-color: #d2d2d2
 }
 
 .jep-square {
-    background-color: midnightblue;
-    color: #ffdc74;
+    background-color: $blue;
+    color: $gold;
     font-size: 20px;
     text-align: center;
     font-family: helvetica;
@@ -31,12 +38,13 @@ body {
 }
 
 .square-hover {
-    outline: dashed 5px #00a500;
+    outline: solid 5px $gold;
+    color: white;
 }
 
 .fullscreen-question {
     font-size: 300%;
-    background-color: midnightblue;
+    background-color: $blue;
     color: white;
     text-align: center;
     width: 100%;
@@ -63,7 +71,7 @@ body {
 }
 
 .player-card {
-    color: #ffdc74;
+    color: $gold;
     background-color: #383634;
     border-radius: 4px;
     text-align: center;
@@ -73,17 +81,17 @@ body {
 }
 
 .player-buzz-wait {
-    background-color: midnightblue;
+    background-color: $blue;
 }
 
 .player-buzzed {
-    background-color: #ffdc74;
+    background-color: $gold;
     color: black;
 }
 
 .player-right {
-    color: #ffdc74;
-    background-color: green;
+    color: $gold;
+    background-color: $green;
 }
 
 .pick-buttons {
@@ -92,8 +100,12 @@ body {
         font-size: 23vmin;
     }
 
+    .fa-chevron-right, .fa-chevron-left {
+        padding-top: 2vmin;
+    }
+
     & .socket-button {
-        margin: 1vmin;
+        @include bigDumbButton($gold, white);
     }
 }
 
@@ -106,24 +118,24 @@ body {
 }
 
 .buzzer-ready {
-    color: midnightblue;
+    @include bigDumbButton($gold, white);
 }
 
 .buzzer-buzzed {
-    color: #ffdc74
+    color: $blue;
 }
 
 .buzzer-right {
-    color: green;
+    color: $green;
 }
 
 .buzzer-wrong {
-    color: red;
+    color: $red;
 }
 
 .player-wrong {
     color: white;
-    background-color: red;
+    background-color: $red;
 }
 
 .player-name {
@@ -132,4 +144,49 @@ body {
 
 .player-score {
     font-size: 20px;
+}
+
+.host-button {
+    & i {
+        font-size: 50vmin;
+    }
+}
+
+.start-pick {
+    @extend .host-button;
+    @include bigDumbButton($gold, white);
+}
+
+.start-buzz {
+    @extend .host-button;
+    @include bigDumbButton($blue, white);
+}
+
+.right-answer {
+    font-size: 25vmin;
+    @include bigDumbButton($green, white);
+}
+
+.wrong-answer {
+    @include bigDumbButton($red, white);
+    font-size: 25vmin;
+}
+
+.give-up {
+    @extend .host-button;
+    @include bigDumbButton($red, white);
+}
+
+.answer-holder {
+    div & {
+        background-color: white;
+        box-shadow: 0.5vmin 0.5vmin 0.5vmin gray;
+        border-radius: 1vmin;
+        padding: 1rem;
+    }
+
+    & p {
+        font-weight: bold;
+        text-align: center;
+    }
 }

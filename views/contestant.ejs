@@ -1,6 +1,5 @@
 <% include partials/header %>
-
-<h1>Logged in as Contestant <%= user.name %></h1>
+<%- include('partials/menu_banner.ejs', {role: "Contestant"}) %>
 <div class="pick-buttons" style="display: none;">
     <div class="flex-row" style="justify-content: center">
         <button class="socket-button" data-event="move-pick" data-event-data="up">
@@ -12,7 +11,7 @@
             <i class="fa fa-chevron-left"></i>
         </button>
         <button class="socket-button" data-event="lock-pick">
-            <i class="fa fa-circle"></i>
+            <i class="fa fa-check"></i>
         </button>
         <button class="socket-button" data-event="move-pick" data-event-data="right">
             <i class="fa fa-chevron-right"></i>
@@ -25,11 +24,11 @@
     </div>
 </div>
 
-<div class="flex-row buzzer" onclick="()=>{}" style="justify-content: middle">
-    <i class="fa fa-bell-slash"></i>
+<div class="flex-row buzzer-holder" onclick="()=>{}" style="justify-content: middle">
+    <div class="buzzer" onclick="()=>{}">
+        <i class="fa fa-fw fa-bell-slash"></i>
+    </button>
 </div>
-
-<a href="/logout">Logout</a>
 
 <script src="js/contestant.bundle.js"></script>
 <% include partials/footer %>

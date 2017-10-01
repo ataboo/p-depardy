@@ -4,6 +4,7 @@ window.$ = require('jquery');
     const ClientHandler = require('./../client-handler');
     let socket;
     let myId;
+    let $buzzer;
 
     $.fn.toggleBell = function(toggle) {
         this.find('i.fa').toggleClass('fa-bell-slash', !toggle).toggleClass('fa-bell', toggle);
@@ -26,9 +27,13 @@ window.$ = require('jquery');
             socket.send(JSON.stringify({event: event, data: data}));
         });
 
-        $('.buzzer').on('click', function() {
+        $buzzer = $('.buzzer');
+
+        $buzzer.on('click', function() {
             if ($(this).hasClass('buzzer-ready')) {
+                $buzzer.prop('disabled', true);
                 socket.send(JSON.stringify({event: 'buzzed', data: {player_id: myId}}));
+                console.log('Sending buzz!');
             }
 
             return false;
@@ -42,6 +47,9 @@ window.$ = require('jquery');
                 break;
             case 'show-question':
                 showQuestion(data);
+                break;
+            case 'show-answer':
+                showAnswer();
                 break;
             case 'start-buzzing':
                 startBuzz();
@@ -62,30 +70,35 @@ window.$ = require('jquery');
     }
 
     function showPick() {
-        $('.buzzer').hide();
+        $('.buzz-holder').hide();
 
         console.log('showing pick');
         $('.pick-buttons').show();
     }
 
     function showQuestion(data) {
-        $('.buzzer').toggleBell(false).removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong').show()
+        $buzzer.toggleBell(false)
+            .removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong')
+            .prop('disabled', false)
+            .show()
 
         $('.pick-buttons').hide();
-        $('.buzz-button').show();
+        $('.buzz-holder').show();
     }
 
     function startBuzz() {
-        $('.buzzer').addClass('buzzer-ready').toggleBell(true);
+        $('.buzz-holder').show();
+        $buzzer.addClass('buzzer-ready').toggleBell(true);
     }
 
     function buzzAccepted(data) {
-        $('.buzzer').removeClass('buzzer-ready');
-
+        $buzzer.toggleBell(true)
+            .removeClass('buzzer-ready')
+            .prop('disabled', false);
         if (data.player_id == myId) {
-            $('.buzzer').addClass('buzzer-buzzed');
+            $buzzer.addClass('buzzer-buzzed');
         } else {
-            $('.buzzer').toggleBell(false);
+            $buzzer.toggleBell(false);
         }
     }
 
@@ -94,10 +107,14 @@ window.$ = require('jquery');
     }
 
     function answerWrong() {
-        $('.buzzer').toggleBell(false).removeClass('buzzer-buzzed').addClass('buzzer-wrong');
+        $buzzer.toggleBell(false).removeClass('buzzer-buzzed').addClass('buzzer-wrong');
+    }
+
+    function showAnswer() {
+        $buzzer.toggleBell(false).removeClass('buzzer-ready buzzer-buzzed buzzer-right buzzer-wrong');
     }
 
     function answerRight() {
-        $('.buzzer').removeClass('buzzer-buzzed').addClass('buzzer-right');
+        $buzzer.removeClass('buzzer-buzzed').addClass('buzzer-right');
     }
 })();
